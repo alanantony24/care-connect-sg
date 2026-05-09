@@ -1,5 +1,5 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { Heart, Home, Users, Calendar, Bell, Shield } from "lucide-react";
+import { Heart, Home, Users, Calendar, Shield } from "lucide-react";
 import { useSession } from "@/lib/session";
 import type { ReactNode } from "react";
 
