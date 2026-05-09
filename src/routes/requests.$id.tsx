@@ -4,9 +4,17 @@ import { AppShell } from "@/components/AppShell";
 import { useSession } from "@/lib/session";
 import { supabase } from "@/integrations/supabase/client";
 import { taskMeta } from "@/lib/tasks";
-import { ArrowLeft, Calendar, CheckCircle2, Clock, Loader2, MapPin, ShieldAlert } from "lucide-react";
-import { toast } from "sonner";
-import { checkBadgesOnClaim, checkBadgesOnComplete } from "@/lib/badges";
+import {
+  ArrowLeft,
+  Calendar,
+  CheckCircle2,
+  Clock,
+  Loader2,
+  MapPin,
+  ShieldAlert,
+  KeyRound,
+  PlayCircle,
+} from "lucide-react";
 
 export const Route = createFileRoute("/requests/$id")({
   beforeLoad: async () => {
@@ -28,30 +36,27 @@ interface RequestRow {
   created_at: string;
   requester_id: string;
   claimed_by: string | null;
+  start_pin: string | null;
+  end_pin: string | null;
   requester: { name: string; avatar_url: string | null } | null;
   claimer: { name: string; avatar_url: string | null } | null;
 }
 
 function TaskDetail() {
   const { id } = useParams({ from: "/requests/$id" });
-  const { profile, refresh } = useSession();
+  const { profile } = useSession();
   const nav = useNavigate();
   const [r, setR] = useState<RequestRow | null>(null);
-  const [busy, setBusy] = useState(false);
 
-  const load = async () => {
-    const { data } = await supabase
+  useEffect(() => {
+    supabase
       .from("requests")
       .select(
         "*, requester:profiles!requests_requester_id_fkey(name, avatar_url), claimer:profiles!requests_claimed_by_fkey(name, avatar_url)",
       )
       .eq("id", id)
-      .maybeSingle();
-    setR(data as RequestRow | null);
-  };
-
-  useEffect(() => {
-    load();
+      .maybeSingle()
+      .then(({ data }) => setR(data as RequestRow | null));
   }, [id]);
 
   if (!r || !profile) {
@@ -72,50 +77,6 @@ function TaskDetail() {
   const ageHours = (Date.now() - new Date(r.created_at).getTime()) / 36e5;
   const urgent = r.status === "open" && ageHours < 12;
 
-  const claim = async () => {
-    setBusy(true);
-    const { error } = await supabase
-      .from("requests")
-      .update({ claimed_by: profile.id, status: "claimed" })
-      .eq("id", r.id)
-      .eq("status", "open");
-    if (error) {
-      setBusy(false);
-      return toast.error(error.message);
-    }
-    await checkBadgesOnClaim(profile.id, r.created_at);
-    toast.success("Task claimed! 🎉");
-    setBusy(false);
-    load();
-    refresh();
-  };
-
-  const complete = async () => {
-    setBusy(true);
-    const { error } = await supabase
-      .from("requests")
-      .update({ status: "completed" })
-      .eq("id", r.id);
-    if (error) {
-      setBusy(false);
-      return toast.error(error.message);
-    }
-    // Increment volunteer's tasks_helped
-    const helperId = r.claimed_by ?? profile.id;
-    const { data: helperProfile } = await supabase
-      .from("profiles")
-      .select("tasks_helped")
-      .eq("id", helperId)
-      .maybeSingle();
-    const next = (helperProfile?.tasks_helped ?? 0) + 1;
-    await supabase.from("profiles").update({ tasks_helped: next }).eq("id", helperId);
-    if (helperId === profile.id) await checkBadgesOnComplete(profile.id, next);
-    toast.success("Task marked completed");
-    setBusy(false);
-    load();
-    refresh();
-  };
-
   const back = isVolunteer ? "/volunteer" : "/dashboard";
 
   return (
@@ -125,7 +86,7 @@ function TaskDetail() {
           <Link to={back} className="size-10 grid place-items-center rounded-full bg-card border">
             <ArrowLeft className="size-5" />
           </Link>
-          <p className="text-primary font-bold tracking-tight">Komunity</p>
+          <p className="text-primary font-bold tracking-tight">CareKampung</p>
           <div className="size-10" />
         </div>
 
@@ -139,7 +100,7 @@ function TaskDetail() {
             {meta.label}
           </span>
           <span className="rounded-full bg-muted text-muted-foreground text-xs font-semibold px-3 py-1.5 capitalize">
-            {r.status}
+            {r.status.replace("_", " ")}
           </span>
         </div>
 
@@ -182,11 +143,29 @@ function TaskDetail() {
           </div>
         )}
 
+        {/* PINs visible to caregiver (the requester) only */}
+        {isMine && r.status !== "completed" && (
+          <div className="mt-4 rounded-2xl border border-primary/30 bg-primary-soft/40 p-4">
+            <div className="flex items-center gap-2">
+              <KeyRound className="size-4 text-primary" />
+              <p className="text-xs uppercase tracking-wider font-semibold text-primary">
+                Your task PINs
+              </p>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Share these with the volunteer at the start and end of the visit.
+            </p>
+            <div className="mt-3 grid grid-cols-2 gap-3">
+              <PinBlock label="Start PIN" value={r.start_pin} />
+              <PinBlock label="End PIN" value={r.end_pin} />
+            </div>
+          </div>
+        )}
+
         <div className="mt-4 rounded-2xl bg-warning/10 border border-warning/40 p-4 flex gap-3">
           <ShieldAlert className="size-5 shrink-0 text-warning-foreground" />
           <p className="text-xs leading-5 text-warning-foreground">
-            Volunteers must not handle medication, give injections, or perform medical procedures.
-            Call 995 in any emergency.
+            Volunteers do not handle medical procedures or medications. Call 995 in any emergency.
           </p>
         </div>
 
@@ -202,37 +181,59 @@ function TaskDetail() {
           </div>
         )}
 
-        <div className="mt-8">
+        <div className="mt-8 space-y-2">
           {isVolunteer && r.status === "open" && (
             <button
-              disabled={busy}
-              onClick={claim}
-              className="w-full rounded-full bg-primary text-primary-foreground py-4 font-semibold shadow-elevated flex items-center justify-center gap-2 disabled:opacity-60"
+              onClick={() => nav({ to: "/requests/$id/start", params: { id } })}
+              className="w-full rounded-full bg-primary text-primary-foreground py-4 font-semibold shadow-elevated flex items-center justify-center gap-2"
             >
-              {busy ? <Loader2 className="size-4 animate-spin" /> : <CheckCircle2 className="size-5" />}
-              Claim This Task
+              <PlayCircle className="size-5" /> Accept & Start with PIN
             </button>
           )}
 
-          {r.status === "claimed" && (iClaimed || isMine) && (
+          {isVolunteer && r.status === "claimed" && iClaimed && (
             <button
-              disabled={busy}
-              onClick={complete}
-              className="w-full rounded-full bg-primary text-primary-foreground py-4 font-semibold shadow-elevated flex items-center justify-center gap-2 disabled:opacity-60"
+              onClick={() => nav({ to: "/requests/$id/start", params: { id } })}
+              className="w-full rounded-full bg-primary text-primary-foreground py-4 font-semibold shadow-elevated flex items-center justify-center gap-2"
             >
-              {busy ? <Loader2 className="size-4 animate-spin" /> : <CheckCircle2 className="size-5" />}
-              Mark completed
+              <PlayCircle className="size-5" /> Start Task with PIN
+            </button>
+          )}
+
+          {r.status === "in_progress" && iClaimed && (
+            <button
+              onClick={() => nav({ to: "/requests/$id/end", params: { id } })}
+              className="w-full rounded-full bg-primary text-primary-foreground py-4 font-semibold shadow-elevated flex items-center justify-center gap-2"
+            >
+              <CheckCircle2 className="size-5" /> End Task with PIN
             </button>
           )}
 
           {r.status === "completed" && (
-            <div className="rounded-2xl bg-success/15 text-success-foreground border border-success/30 p-4 text-center font-semibold">
-              ✅ Task completed — thank you!
-            </div>
+            <>
+              <div className="rounded-2xl bg-success/15 text-success-foreground border border-success/30 p-4 text-center font-semibold">
+                ✅ Task completed — thank you!
+              </div>
+              <button
+                onClick={() => nav({ to: "/requests/$id/review", params: { id } })}
+                className="w-full rounded-full bg-card border py-4 font-semibold"
+              >
+                {isVolunteer ? "Leave caregiver review" : "Review volunteer"}
+              </button>
+            </>
           )}
         </div>
       </div>
     </AppShell>
+  );
+}
+
+function PinBlock({ label, value }: { label: string; value: string | null }) {
+  return (
+    <div className="rounded-xl bg-card border p-3 text-center">
+      <p className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</p>
+      <p className="text-2xl font-bold tracking-[0.4em] mt-1 text-primary">{value ?? "----"}</p>
+    </div>
   );
 }
 

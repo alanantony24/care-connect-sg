@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.set_request_pins() FROM PUBLIC, anon, authenticated;

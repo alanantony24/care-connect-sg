@@ -1,12 +1,22 @@
-import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { AppShell, PageHeader } from "@/components/AppShell";
 import { useSession } from "@/lib/session";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, LogOut, Lock, Heart, ShieldCheck, Award, Clock, Star } from "lucide-react";
+import {
+  Loader2,
+  LogOut,
+  Lock,
+  Heart,
+  ShieldCheck,
+  Award,
+  Clock,
+  Star,
+  ChevronRight,
+  Mail,
+  CheckCircle2,
+} from "lucide-react";
 import { BADGE_DEFS, type BadgeType } from "@/lib/badges";
-import { taskMeta } from "@/lib/tasks";
-import { Link } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/profile")({
   beforeLoad: async () => {
@@ -24,30 +34,41 @@ const BADGE_ICONS: Record<BadgeType, typeof Heart> = {
   trusted_helper: Star,
 };
 
+interface Review {
+  id: string;
+  rating: number;
+  comment: string | null;
+  created_at: string;
+  reviewer: { name: string } | null;
+}
+
+const SENIORS = [
+  { name: "Eleanor R.", desc: "Daily assistance & companionship" },
+  { name: "Robert M.", desc: "Weekly check-ins & mobility" },
+];
+
 function ProfilePage() {
   const { profile, signOut } = useSession();
   const nav = useNavigate();
   const [badges, setBadges] = useState<{ badge_type: string }[] | null>(null);
-  const [recent, setRecent] = useState<
-    { id: string; title: string; status: string; task_type: string; created_at: string }[] | null
-  >(null);
+  const [reviews, setReviews] = useState<Review[] | null>(null);
 
   useEffect(() => {
     if (!profile) return;
+    if (profile.role === "volunteer") {
+      supabase
+        .from("badges")
+        .select("badge_type")
+        .eq("user_id", profile.id)
+        .then(({ data }) => setBadges(data ?? []));
+    }
     supabase
-      .from("badges")
-      .select("badge_type")
-      .eq("user_id", profile.id)
-      .then(({ data }) => setBadges(data ?? []));
-
-    const col = profile.role === "volunteer" ? "claimed_by" : "requester_id";
-    supabase
-      .from("requests")
-      .select("id, title, status, task_type, created_at")
-      .eq(col, profile.id)
+      .from("reviews")
+      .select("id, rating, comment, created_at, reviewer:profiles!reviews_reviewer_id_fkey(name)")
+      .eq("reviewee_id", profile.id)
       .order("created_at", { ascending: false })
       .limit(5)
-      .then(({ data }) => setRecent(data ?? []));
+      .then(({ data }) => setReviews((data ?? []) as unknown as Review[]));
   }, [profile]);
 
   if (!profile) {
@@ -61,6 +82,11 @@ function ProfilePage() {
   }
 
   const earned = new Set((badges ?? []).map((b) => b.badge_type));
+  const isVolunteer = profile.role === "volunteer";
+  const avgRating =
+    reviews && reviews.length > 0
+      ? (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1)
+      : null;
 
   const onSignOut = async () => {
     await signOut();
@@ -83,103 +109,189 @@ function ProfilePage() {
       />
 
       <div className="container-app">
-        <div className="flex flex-col items-center text-center">
-          <div className="size-24 rounded-full bg-primary-soft text-primary grid place-items-center text-3xl font-bold border-4 border-card shadow-elevated">
-            {profile.name.charAt(0).toUpperCase()}
-          </div>
-          <h2 className="mt-3 text-xl font-bold">{profile.name}</h2>
-          <p className="text-sm text-muted-foreground capitalize">
-            {profile.role === "volunteer" ? "Community Volunteer" : "Caregiver"}
-          </p>
-        </div>
-
-        <div className="mt-6 grid grid-cols-2 gap-3">
-          <Stat label="Tasks helped" value={profile.tasks_helped} />
-          <Stat label="Tasks received" value={profile.tasks_received} />
-        </div>
-
-        <h3 className="mt-7 mb-3 text-xs font-semibold tracking-wider text-muted-foreground uppercase">
-          Badges
-        </h3>
-        <div className="rounded-2xl bg-card border p-4 shadow-card">
-          {badges === null ? (
-            <div className="h-24 grid place-items-center">
-              <Loader2 className="size-5 animate-spin text-muted-foreground" />
+        <div className="rounded-3xl bg-card shadow-card overflow-hidden">
+          <div className="h-16 bg-primary-soft" />
+          <div className="-mt-12 flex flex-col items-center text-center px-5 pb-6">
+            <div className="size-24 rounded-full bg-primary text-primary-foreground grid place-items-center text-3xl font-bold border-4 border-card shadow-elevated">
+              {profile.name.charAt(0).toUpperCase()}
             </div>
-          ) : (
-            <div className="grid grid-cols-3 gap-3">
-              {BADGE_DEFS.map((b) => {
-                const Icon = BADGE_ICONS[b.type];
-                const got = earned.has(b.type);
-                return (
-                  <div key={b.type} className="flex flex-col items-center text-center">
-                    <div
-                      className={`size-16 rounded-full grid place-items-center relative ${
-                        got
-                          ? "bg-primary text-primary-foreground shadow-elevated"
-                          : "bg-muted text-muted-foreground"
-                      }`}
-                    >
-                      <Icon className="size-7" />
-                      {!got && (
-                        <span className="absolute -bottom-1 -right-1 size-6 rounded-full bg-card border grid place-items-center text-muted-foreground">
-                          <Lock className="size-3" />
-                        </span>
-                      )}
-                    </div>
-                    <p className={`mt-2 text-xs font-semibold ${got ? "" : "text-muted-foreground"}`}>
-                      {b.name}
-                    </p>
-                    <p className="text-[10px] text-muted-foreground leading-tight">{b.desc}</p>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-
-        <h3 className="mt-7 mb-3 text-xs font-semibold tracking-wider text-muted-foreground uppercase">
-          Recent activity
-        </h3>
-        <div className="space-y-2">
-          {recent === null ? (
-            <div className="h-20 rounded-2xl bg-card border animate-pulse" />
-          ) : recent.length === 0 ? (
-            <p className="rounded-2xl bg-card border p-4 text-sm text-muted-foreground text-center">
-              No activity yet.
+            <h2 className="mt-3 text-xl font-bold flex items-center gap-1.5">
+              {profile.name}
+              <CheckCircle2 className="size-4 text-primary" />
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              {isVolunteer ? "Community Volunteer" : "Caregiver"}
             </p>
-          ) : (
-            recent.map((t) => {
-              const Icon = taskMeta(t.task_type).icon;
-              return (
-                <Link
-                  key={t.id}
-                  to="/requests/$id"
-                  params={{ id: t.id }}
+          </div>
+        </div>
+
+        <div className="mt-4 grid grid-cols-2 gap-3">
+          <Stat
+            icon={<CheckCircle2 className="size-5" />}
+            label={isVolunteer ? "Tasks completed" : "Tasks requested"}
+            value={isVolunteer ? profile.tasks_helped : profile.tasks_received}
+          />
+          <Stat
+            icon={<Star className="size-5" />}
+            label="Community Rating"
+            value={avgRating ? `${avgRating}` : "—"}
+            suffix={avgRating ? "stars" : undefined}
+          />
+        </div>
+
+        {/* Caregiver: Care recipients */}
+        {!isVolunteer && (
+          <>
+            <h3 className="mt-7 mb-3 text-base font-bold">Care Recipients</h3>
+            <div className="space-y-2.5">
+              {SENIORS.map((s) => (
+                <div
+                  key={s.name}
                   className="flex items-center gap-3 rounded-2xl bg-card border p-3 shadow-card"
                 >
-                  <span className="size-10 grid place-items-center rounded-xl bg-primary-soft text-primary">
-                    <Icon className="size-4" />
+                  <span className="size-12 rounded-full bg-primary-soft text-primary grid place-items-center font-semibold">
+                    {s.name.charAt(0)}
                   </span>
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold truncate text-sm">{t.title}</p>
-                    <p className="text-xs text-muted-foreground capitalize">{t.status}</p>
+                    <p className="font-bold truncate">{s.name}</p>
+                    <p className="text-xs text-muted-foreground truncate">{s.desc}</p>
                   </div>
-                </Link>
-              );
-            })
+                  <ChevronRight className="size-4 text-muted-foreground shrink-0" />
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+
+        {/* Reviews — for both roles */}
+        <h3 className="mt-7 mb-3 text-base font-bold">Reviews</h3>
+        <div className="rounded-2xl bg-card border p-4 shadow-card">
+          {reviews === null ? (
+            <div className="h-20 grid place-items-center">
+              <Loader2 className="size-5 animate-spin text-muted-foreground" />
+            </div>
+          ) : reviews.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-6">
+              No reviews yet — they appear after your first completed task.
+            </p>
+          ) : (
+            <div className="space-y-4">
+              <div className="flex items-center gap-4">
+                <div className="rounded-2xl bg-muted/50 px-4 py-3 text-center">
+                  <p className="text-3xl font-bold text-primary leading-none">{avgRating}</p>
+                  <div className="mt-1 flex justify-center gap-0.5">
+                    {[1, 2, 3, 4, 5].map((n) => (
+                      <Star
+                        key={n}
+                        className={`size-3 ${
+                          n <= Math.round(parseFloat(avgRating ?? "0"))
+                            ? "fill-warning text-warning"
+                            : "fill-transparent text-muted-foreground/40"
+                        }`}
+                        strokeWidth={1.5}
+                      />
+                    ))}
+                  </div>
+                </div>
+                <div className="flex-1 min-w-0 text-sm">
+                  {reviews[0].comment ? (
+                    <p className="italic text-muted-foreground line-clamp-4">
+                      “{reviews[0].comment}”
+                    </p>
+                  ) : (
+                    <p className="text-muted-foreground">
+                      {reviews.length} rating{reviews.length === 1 ? "" : "s"} from the community.
+                    </p>
+                  )}
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    — {reviews[0].reviewer?.name ?? "Community member"}
+                  </p>
+                </div>
+              </div>
+            </div>
           )}
         </div>
+
+        {/* Badges — volunteers only */}
+        {isVolunteer && (
+          <>
+            <h3 className="mt-7 mb-3 text-base font-bold">Badges</h3>
+            <div className="rounded-2xl bg-card border p-4 shadow-card">
+              {badges === null ? (
+                <div className="h-24 grid place-items-center">
+                  <Loader2 className="size-5 animate-spin text-muted-foreground" />
+                </div>
+              ) : (
+                <div className="grid grid-cols-3 gap-3">
+                  {BADGE_DEFS.map((b) => {
+                    const Icon = BADGE_ICONS[b.type];
+                    const got = earned.has(b.type);
+                    return (
+                      <div key={b.type} className="flex flex-col items-center text-center">
+                        <div
+                          className={`size-16 rounded-full grid place-items-center relative ${
+                            got
+                              ? "bg-primary text-primary-foreground shadow-elevated"
+                              : "bg-muted text-muted-foreground"
+                          }`}
+                        >
+                          <Icon className="size-7" />
+                          {!got && (
+                            <span className="absolute -bottom-1 -right-1 size-6 rounded-full bg-card border grid place-items-center text-muted-foreground">
+                              <Lock className="size-3" />
+                            </span>
+                          )}
+                        </div>
+                        <p
+                          className={`mt-2 text-xs font-semibold leading-tight ${
+                            got ? "" : "text-muted-foreground"
+                          }`}
+                        >
+                          {b.name}
+                        </p>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </>
+        )}
+
+        <Link
+          to="/feed"
+          className="mt-6 mb-2 w-full rounded-full bg-primary text-primary-foreground py-3.5 font-semibold flex items-center justify-center gap-2 shadow-elevated"
+        >
+          <Mail className="size-4" /> View my tasks
+        </Link>
       </div>
     </AppShell>
   );
 }
 
-function Stat({ label, value }: { label: string; value: number }) {
+function Stat({
+  icon,
+  label,
+  value,
+  suffix,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string | number;
+  suffix?: string;
+}) {
   return (
-    <div className="rounded-2xl bg-card border p-4 shadow-card text-center">
-      <p className="text-2xl font-bold">{value}</p>
-      <p className="text-xs text-muted-foreground mt-1">{label}</p>
+    <div className="rounded-2xl bg-card border p-4 shadow-card flex items-center gap-3">
+      <span className="size-10 rounded-full bg-primary-soft text-primary grid place-items-center shrink-0">
+        {icon}
+      </span>
+      <div className="min-w-0">
+        <p className="text-xs text-muted-foreground truncate">{label}</p>
+        <p className="font-bold text-lg leading-tight">
+          <span className="text-primary">{value}</span>
+          {suffix && <span className="text-xs text-muted-foreground ml-1">{suffix}</span>}
+        </p>
+      </div>
     </div>
   );
 }

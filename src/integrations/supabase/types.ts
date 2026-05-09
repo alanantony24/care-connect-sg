@@ -76,12 +76,16 @@ export type Database = {
       requests: {
         Row: {
           claimed_by: string | null
+          completed_at: string | null
           created_at: string
           date_needed: string
+          end_pin: string | null
           id: string
           location: string
           notes: string | null
           requester_id: string
+          start_pin: string | null
+          started_at: string | null
           status: string
           task_type: string
           time_needed: string
@@ -89,12 +93,16 @@ export type Database = {
         }
         Insert: {
           claimed_by?: string | null
+          completed_at?: string | null
           created_at?: string
           date_needed: string
+          end_pin?: string | null
           id?: string
           location: string
           notes?: string | null
           requester_id: string
+          start_pin?: string | null
+          started_at?: string | null
           status?: string
           task_type: string
           time_needed: string
@@ -102,12 +110,16 @@ export type Database = {
         }
         Update: {
           claimed_by?: string | null
+          completed_at?: string | null
           created_at?: string
           date_needed?: string
+          end_pin?: string | null
           id?: string
           location?: string
           notes?: string | null
           requester_id?: string
+          start_pin?: string | null
+          started_at?: string | null
           status?: string
           task_type?: string
           time_needed?: string
@@ -129,6 +141,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      reviews: {
+        Row: {
+          badge: string | null
+          comment: string | null
+          created_at: string
+          id: string
+          rating: number
+          request_id: string
+          reviewee_id: string
+          reviewer_id: string
+        }
+        Insert: {
+          badge?: string | null
+          comment?: string | null
+          created_at?: string
+          id?: string
+          rating: number
+          request_id: string
+          reviewee_id: string
+          reviewer_id: string
+        }
+        Update: {
+          badge?: string | null
+          comment?: string | null
+          created_at?: string
+          id?: string
+          rating?: number
+          request_id?: string
+          reviewee_id?: string
+          reviewer_id?: string
+        }
+        Relationships: []
       }
     }
     Views: {
