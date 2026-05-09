@@ -146,6 +146,28 @@ function NewRequest() {
           />
         </Field>
 
+        <Field label="Payment offered (SGD)">
+          <div className="relative">
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-semibold">
+              S$
+            </span>
+            <input
+              required
+              type="number"
+              min={0}
+              step={1}
+              value={payment}
+              onChange={(e) => setPayment(e.target.value)}
+              className="kinput pl-10"
+              placeholder="10"
+            />
+          </div>
+          <span className="block text-xs text-muted-foreground mt-1.5">
+            Held securely while the task is in progress and released to the volunteer when they
+            enter your end PIN.
+          </span>
+        </Field>
+
         <button
           disabled={busy}
           className="w-full rounded-full bg-primary text-primary-foreground py-3.5 font-semibold shadow-elevated flex items-center justify-center gap-2 disabled:opacity-60"
