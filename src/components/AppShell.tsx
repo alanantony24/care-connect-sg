@@ -1,18 +1,17 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { Home, PlusCircle, CalendarCheck2, UserRound, Sparkles } from "lucide-react";
+import { Home, ClipboardList, UserRound } from "lucide-react";
 import { useSession } from "@/lib/session";
 import type { ReactNode } from "react";
 
 const caregiverNav = [
   { to: "/dashboard", label: "Home", icon: Home },
-  { to: "/requests/new", label: "Request", icon: PlusCircle },
-  { to: "/feed", label: "Activity", icon: CalendarCheck2 },
+  { to: "/feed", label: "Tasks", icon: ClipboardList },
   { to: "/profile", label: "Profile", icon: UserRound },
 ];
 
 const volunteerNav = [
   { to: "/volunteer", label: "Home", icon: Home },
-  { to: "/feed", label: "Tasks", icon: Sparkles },
+  { to: "/feed", label: "Tasks", icon: ClipboardList },
   { to: "/profile", label: "Profile", icon: UserRound },
 ];
 
