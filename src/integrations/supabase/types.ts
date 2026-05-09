@@ -14,7 +14,122 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      badges: {
+        Row: {
+          badge_type: string
+          earned_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          badge_type: string
+          earned_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          badge_type?: string
+          earned_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "badges_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          id: string
+          name: string
+          role: string
+          tasks_helped: number
+          tasks_received: number
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          id: string
+          name: string
+          role: string
+          tasks_helped?: number
+          tasks_received?: number
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          role?: string
+          tasks_helped?: number
+          tasks_received?: number
+        }
+        Relationships: []
+      }
+      requests: {
+        Row: {
+          claimed_by: string | null
+          created_at: string
+          date_needed: string
+          id: string
+          location: string
+          notes: string | null
+          requester_id: string
+          status: string
+          task_type: string
+          time_needed: string
+          title: string
+        }
+        Insert: {
+          claimed_by?: string | null
+          created_at?: string
+          date_needed: string
+          id?: string
+          location: string
+          notes?: string | null
+          requester_id: string
+          status?: string
+          task_type: string
+          time_needed: string
+          title: string
+        }
+        Update: {
+          claimed_by?: string | null
+          created_at?: string
+          date_needed?: string
+          id?: string
+          location?: string
+          notes?: string | null
+          requester_id?: string
+          status?: string
+          task_type?: string
+          time_needed?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "requests_claimed_by_fkey"
+            columns: ["claimed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "requests_requester_id_fkey"
+            columns: ["requester_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
