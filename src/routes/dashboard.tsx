@@ -25,6 +25,7 @@ interface RequestRow {
   status: string;
   created_at: string;
   claimed_by: string | null;
+  payment_amount?: number | null;
   claimer?: { name: string } | null;
 }
 
