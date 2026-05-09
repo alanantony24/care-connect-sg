@@ -7,7 +7,7 @@ import { PinDisplay, PinKeypad } from "@/components/PinPad";
 import { toast } from "sonner";
 import { checkBadgesOnClaim } from "@/lib/badges";
 
-export const Route = createFileRoute("/requests/$id/start")({
+export const Route = createFileRoute("/requests/$id_/start")({
   beforeLoad: async () => {
     const { data } = await supabase.auth.getSession();
     if (!data.session) throw redirect({ to: "/login" });
