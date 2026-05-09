@@ -130,7 +130,7 @@ function Dashboard() {
         </div>
       </Card>
 
-      <SectionTitle title="Medications" action={<Link to="/medications" className="text-xs font-medium text-primary">Manage</Link>} />
+      <SectionTitle title="Medications" />
       <div className="space-y-2.5">
         {medications.slice(0, 3).map((m) => {
           const senior = seniors.find((s) => s.id === m.seniorId)!;
