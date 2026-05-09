@@ -14,6 +14,7 @@ import {
   ShieldAlert,
   KeyRound,
   PlayCircle,
+  Wallet,
 } from "lucide-react";
 
 export const Route = createFileRoute("/requests/$id")({
