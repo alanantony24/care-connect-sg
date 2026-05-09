@@ -1,51 +1,76 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
-import type { Role } from "./mock-data";
+import { supabase } from "@/integrations/supabase/client";
+import type { Session, User } from "@supabase/supabase-js";
 
-interface Session {
-  role: Role | null;
-  name: string | null;
-  setSession: (role: Role, name: string) => void;
-  clear: () => void;
+export type Role = "caregiver" | "volunteer";
+
+export interface Profile {
+  id: string;
+  name: string;
+  role: Role;
+  avatar_url: string | null;
+  tasks_helped: number;
+  tasks_received: number;
 }
 
-const Ctx = createContext<Session | null>(null);
+interface Ctx {
+  user: User | null;
+  session: Session | null;
+  profile: Profile | null;
+  loading: boolean;
+  refresh: () => Promise<void>;
+  signOut: () => Promise<void>;
+}
+
+const SessionCtx = createContext<Ctx | null>(null);
 
 export function SessionProvider({ children }: { children: ReactNode }) {
-  const [role, setRole] = useState<Role | null>(null);
-  const [name, setName] = useState<string | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const loadProfile = async (uid: string) => {
+    const { data } = await supabase.from("profiles").select("*").eq("id", uid).maybeSingle();
+    setProfile((data as Profile | null) ?? null);
+  };
+
+  const refresh = async () => {
+    if (session?.user?.id) await loadProfile(session.user.id);
+  };
 
   useEffect(() => {
-    try {
-      const r = localStorage.getItem("ck_role") as Role | null;
-      const n = localStorage.getItem("ck_name");
-      if (r) setRole(r);
-      if (n) setName(n);
-    } catch {}
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
+      setSession(s);
+      if (s?.user?.id) {
+        setTimeout(() => loadProfile(s.user.id), 0);
+      } else {
+        setProfile(null);
+      }
+    });
+    supabase.auth.getSession().then(({ data }) => {
+      setSession(data.session);
+      if (data.session?.user?.id) loadProfile(data.session.user.id);
+      setLoading(false);
+    });
+    return () => sub.subscription.unsubscribe();
   }, []);
 
-  const setSession = (r: Role, n: string) => {
-    setRole(r);
-    setName(n);
-    try {
-      localStorage.setItem("ck_role", r);
-      localStorage.setItem("ck_name", n);
-    } catch {}
+  const signOut = async () => {
+    await supabase.auth.signOut();
+    setProfile(null);
   };
 
-  const clear = () => {
-    setRole(null);
-    setName(null);
-    try {
-      localStorage.removeItem("ck_role");
-      localStorage.removeItem("ck_name");
-    } catch {}
-  };
-
-  return <Ctx.Provider value={{ role, name, setSession, clear }}>{children}</Ctx.Provider>;
+  return (
+    <SessionCtx.Provider
+      value={{ user: session?.user ?? null, session, profile, loading, refresh, signOut }}
+    >
+      {children}
+    </SessionCtx.Provider>
+  );
 }
 
 export function useSession() {
-  const c = useContext(Ctx);
+  const c = useContext(SessionCtx);
   if (!c) throw new Error("useSession must be used within SessionProvider");
   return c;
 }

@@ -10,11 +10,11 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as VolunteerRouteImport } from './routes/volunteer'
-import { Route as SeniorRouteImport } from './routes/senior'
-import { Route as ScheduleRouteImport } from './routes/schedule'
-import { Route as RequestsRouteImport } from './routes/requests'
+import { Route as SignupRouteImport } from './routes/signup'
+import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as FeedRouteImport } from './routes/feed'
 import { Route as DashboardRouteImport } from './routes/dashboard'
-import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as RequestsNewRouteImport } from './routes/requests.new'
 import { Route as RequestsIdRouteImport } from './routes/requests.$id'
@@ -24,29 +24,29 @@ const VolunteerRoute = VolunteerRouteImport.update({
   path: '/volunteer',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SeniorRoute = SeniorRouteImport.update({
-  id: '/senior',
-  path: '/senior',
+const SignupRoute = SignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ScheduleRoute = ScheduleRouteImport.update({
-  id: '/schedule',
-  path: '/schedule',
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
   getParentRoute: () => rootRouteImport,
 } as any)
-const RequestsRoute = RequestsRouteImport.update({
-  id: '/requests',
-  path: '/requests',
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FeedRoute = FeedRouteImport.update({
+  id: '/feed',
+  path: '/feed',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminRoute = AdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -55,34 +55,34 @@ const IndexRoute = IndexRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const RequestsNewRoute = RequestsNewRouteImport.update({
-  id: '/new',
-  path: '/new',
-  getParentRoute: () => RequestsRoute,
+  id: '/requests/new',
+  path: '/requests/new',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const RequestsIdRoute = RequestsIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => RequestsRoute,
+  id: '/requests/$id',
+  path: '/requests/$id',
+  getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
   '/dashboard': typeof DashboardRoute
-  '/requests': typeof RequestsRouteWithChildren
-  '/schedule': typeof ScheduleRoute
-  '/senior': typeof SeniorRoute
+  '/feed': typeof FeedRoute
+  '/login': typeof LoginRoute
+  '/profile': typeof ProfileRoute
+  '/signup': typeof SignupRoute
   '/volunteer': typeof VolunteerRoute
   '/requests/$id': typeof RequestsIdRoute
   '/requests/new': typeof RequestsNewRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
   '/dashboard': typeof DashboardRoute
-  '/requests': typeof RequestsRouteWithChildren
-  '/schedule': typeof ScheduleRoute
-  '/senior': typeof SeniorRoute
+  '/feed': typeof FeedRoute
+  '/login': typeof LoginRoute
+  '/profile': typeof ProfileRoute
+  '/signup': typeof SignupRoute
   '/volunteer': typeof VolunteerRoute
   '/requests/$id': typeof RequestsIdRoute
   '/requests/new': typeof RequestsNewRoute
@@ -90,11 +90,11 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
   '/dashboard': typeof DashboardRoute
-  '/requests': typeof RequestsRouteWithChildren
-  '/schedule': typeof ScheduleRoute
-  '/senior': typeof SeniorRoute
+  '/feed': typeof FeedRoute
+  '/login': typeof LoginRoute
+  '/profile': typeof ProfileRoute
+  '/signup': typeof SignupRoute
   '/volunteer': typeof VolunteerRoute
   '/requests/$id': typeof RequestsIdRoute
   '/requests/new': typeof RequestsNewRoute
@@ -103,33 +103,33 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/admin'
     | '/dashboard'
-    | '/requests'
-    | '/schedule'
-    | '/senior'
+    | '/feed'
+    | '/login'
+    | '/profile'
+    | '/signup'
     | '/volunteer'
     | '/requests/$id'
     | '/requests/new'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/admin'
     | '/dashboard'
-    | '/requests'
-    | '/schedule'
-    | '/senior'
+    | '/feed'
+    | '/login'
+    | '/profile'
+    | '/signup'
     | '/volunteer'
     | '/requests/$id'
     | '/requests/new'
   id:
     | '__root__'
     | '/'
-    | '/admin'
     | '/dashboard'
-    | '/requests'
-    | '/schedule'
-    | '/senior'
+    | '/feed'
+    | '/login'
+    | '/profile'
+    | '/signup'
     | '/volunteer'
     | '/requests/$id'
     | '/requests/new'
@@ -137,12 +137,14 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AdminRoute: typeof AdminRoute
   DashboardRoute: typeof DashboardRoute
-  RequestsRoute: typeof RequestsRouteWithChildren
-  ScheduleRoute: typeof ScheduleRoute
-  SeniorRoute: typeof SeniorRoute
+  FeedRoute: typeof FeedRoute
+  LoginRoute: typeof LoginRoute
+  ProfileRoute: typeof ProfileRoute
+  SignupRoute: typeof SignupRoute
   VolunteerRoute: typeof VolunteerRoute
+  RequestsIdRoute: typeof RequestsIdRoute
+  RequestsNewRoute: typeof RequestsNewRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -154,25 +156,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VolunteerRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/senior': {
-      id: '/senior'
-      path: '/senior'
-      fullPath: '/senior'
-      preLoaderRoute: typeof SeniorRouteImport
+    '/signup': {
+      id: '/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof SignupRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/schedule': {
-      id: '/schedule'
-      path: '/schedule'
-      fullPath: '/schedule'
-      preLoaderRoute: typeof ScheduleRouteImport
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/requests': {
-      id: '/requests'
-      path: '/requests'
-      fullPath: '/requests'
-      preLoaderRoute: typeof RequestsRouteImport
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/feed': {
+      id: '/feed'
+      path: '/feed'
+      fullPath: '/feed'
+      preLoaderRoute: typeof FeedRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -180,13 +189,6 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof DashboardRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin': {
-      id: '/admin'
-      path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -198,54 +200,32 @@ declare module '@tanstack/react-router' {
     }
     '/requests/new': {
       id: '/requests/new'
-      path: '/new'
+      path: '/requests/new'
       fullPath: '/requests/new'
       preLoaderRoute: typeof RequestsNewRouteImport
-      parentRoute: typeof RequestsRoute
+      parentRoute: typeof rootRouteImport
     }
     '/requests/$id': {
       id: '/requests/$id'
-      path: '/$id'
+      path: '/requests/$id'
       fullPath: '/requests/$id'
       preLoaderRoute: typeof RequestsIdRouteImport
-      parentRoute: typeof RequestsRoute
+      parentRoute: typeof rootRouteImport
     }
   }
 }
 
-interface RequestsRouteChildren {
-  RequestsIdRoute: typeof RequestsIdRoute
-  RequestsNewRoute: typeof RequestsNewRoute
-}
-
-const RequestsRouteChildren: RequestsRouteChildren = {
-  RequestsIdRoute: RequestsIdRoute,
-  RequestsNewRoute: RequestsNewRoute,
-}
-
-const RequestsRouteWithChildren = RequestsRoute._addFileChildren(
-  RequestsRouteChildren,
-)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AdminRoute: AdminRoute,
   DashboardRoute: DashboardRoute,
-  RequestsRoute: RequestsRouteWithChildren,
-  ScheduleRoute: ScheduleRoute,
-  SeniorRoute: SeniorRoute,
+  FeedRoute: FeedRoute,
+  LoginRoute: LoginRoute,
+  ProfileRoute: ProfileRoute,
+  SignupRoute: SignupRoute,
   VolunteerRoute: VolunteerRoute,
+  RequestsIdRoute: RequestsIdRoute,
+  RequestsNewRoute: RequestsNewRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

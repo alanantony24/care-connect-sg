@@ -1,112 +1,173 @@
-import { createFileRoute, Link, Navigate } from "@tanstack/react-router";
-import { AppShell } from "@/components/AppShell";
-import { Card, Pill, SectionTitle, StatCard } from "@/components/ui-bits";
+import { createFileRoute, redirect } from "@tanstack/react-router";
+import { useEffect, useMemo, useState } from "react";
+import { AppShell, PageHeader } from "@/components/AppShell";
 import { useSession } from "@/lib/session";
-import { requests, seniors } from "@/lib/mock-data";
-import { ArrowRight, Clock, MapPin, ShieldCheck } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { Bell, Loader2 } from "lucide-react";
+import { RequestCard, CardSkeleton, EmptyHint } from "./dashboard";
 
 export const Route = createFileRoute("/volunteer")({
-  head: () => ({ meta: [{ title: "Volunteer | CareKampung" }] }),
+  beforeLoad: async () => {
+    const { data } = await supabase.auth.getSession();
+    if (!data.session) throw redirect({ to: "/login" });
+  },
   component: VolunteerHome,
 });
 
-function VolunteerHome() {
-  const { role } = useSession();
-  if (!role) return <Navigate to="/" />;
-  if (role !== "volunteer") return <Navigate to={role === "admin" ? "/admin" : "/dashboard"} />;
+interface RequestRow {
+  id: string;
+  title: string;
+  task_type: string;
+  location: string;
+  date_needed: string;
+  time_needed: string;
+  status: string;
+  created_at: string;
+  claimed_by: string | null;
+  requester_id: string;
+  requester?: { name: string } | null;
+}
 
-  const open = requests.filter((r) => r.status === "open");
-  const accepted = requests.filter((r) => r.status === "accepted");
+function VolunteerHome() {
+  const { profile } = useSession();
+  const [rows, setRows] = useState<RequestRow[] | null>(null);
+  const [filter, setFilter] = useState<"all" | "nearby" | "urgent">("all");
+
+  useEffect(() => {
+    if (!profile) return;
+    supabase
+      .from("requests")
+      .select("*, requester:profiles!requests_requester_id_fkey(name)")
+      .order("created_at", { ascending: false })
+      .limit(50)
+      .then(({ data }) => setRows((data ?? []) as RequestRow[]));
+  }, [profile]);
+
+  const visible = useMemo(() => {
+    const list = (rows ?? []).filter((r) => r.status === "open");
+    if (filter === "urgent") {
+      return list.filter((r) => {
+        const ageHours = (Date.now() - new Date(r.created_at).getTime()) / 36e5;
+        return ageHours < 12;
+      });
+    }
+    return list;
+  }, [rows, filter]);
+
+  const myActive = (rows ?? []).find(
+    (r) => r.claimed_by === profile?.id && r.status === "claimed",
+  );
+
+  if (!profile) {
+    return (
+      <AppShell>
+        <div className="container-app pt-12 grid place-items-center">
+          <Loader2 className="size-6 animate-spin text-muted-foreground" />
+        </div>
+      </AppShell>
+    );
+  }
+
+  const tasksHelped = profile.tasks_helped;
+  const hours = tasksHelped * 2;
+
+  // Next badge: Helping Hand at 5, Guardian Angel at 20
+  const nextBadge =
+    tasksHelped < 5
+      ? { name: "Helping Hand", target: 5, current: tasksHelped }
+      : tasksHelped < 20
+        ? { name: "Guardian Angel", target: 20, current: tasksHelped }
+        : null;
 
   return (
     <AppShell>
-      <div className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
-        <section>
-          <div className="rounded-lg border bg-card p-5 shadow-card">
-            <p className="text-sm font-medium text-muted-foreground">Volunteer home</p>
-            <h1 className="mt-2 text-2xl font-semibold tracking-tight">
-              Pick up practical help near you.
-            </h1>
-            <p className="mt-2 text-sm leading-6 text-muted-foreground">
-              You will only see information needed for the task. Medication and medical procedures
-              are out of scope.
+      <PageHeader
+        title={`Hi, ${profile.name.split(" ")[0]}`}
+        subtitle="Help your community today."
+        right={
+          <span className="size-10 grid place-items-center rounded-full bg-card border">
+            <Bell className="size-5" />
+          </span>
+        }
+      />
+
+      <div className="container-app">
+        <div className="grid grid-cols-2 gap-3">
+          <Stat label="Tasks completed" value={tasksHelped} />
+          <Stat label="Volunteer hours" value={`${hours}h`} />
+        </div>
+
+        {nextBadge && (
+          <div className="mt-4 rounded-2xl bg-primary text-primary-foreground p-4 shadow-elevated">
+            <p className="text-xs uppercase tracking-wider opacity-90">Next badge</p>
+            <p className="text-lg font-semibold mt-1">{nextBadge.name}</p>
+            <div className="mt-3 h-2 rounded-full bg-primary-foreground/20 overflow-hidden">
+              <div
+                className="h-full bg-primary-foreground"
+                style={{ width: `${(nextBadge.current / nextBadge.target) * 100}%` }}
+              />
+            </div>
+            <p className="text-xs opacity-90 mt-2">
+              {nextBadge.current}/{nextBadge.target} tasks
             </p>
-            <div className="mt-5 grid grid-cols-3 gap-3">
-              <StatCard label="Open" value={open.length} hint="Nearby" tone="warning" />
-              <StatCard label="Done" value={47} hint="Tasks" tone="success" />
-              <StatCard label="Rating" value="4.9" hint="Verified" />
-            </div>
           </div>
+        )}
 
-          <SectionTitle title="Accepted" />
-          {accepted.map((r) => {
-            const s = seniors.find((x) => x.id === r.seniorId)!;
-            return (
-              <Link key={r.id} to="/requests/$id" params={{ id: r.id }} className="block">
-                <Card className="border-primary/30">
-                  <Pill tone="primary">Today</Pill>
-                  <h2 className="mt-3 font-semibold">{r.title}</h2>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    {s.name} |{" "}
-                    {new Date(r.datetime).toLocaleTimeString("en-SG", {
-                      hour: "numeric",
-                      minute: "2-digit",
-                    })}
-                  </p>
-                </Card>
-              </Link>
-            );
-          })}
-        </section>
-
-        <section>
-          <SectionTitle title="Open Requests" />
-          <div className="grid gap-3">
-            {open.map((r) => {
-              const s = seniors.find((x) => x.id === r.seniorId)!;
-              return (
-                <Link key={r.id} to="/requests/$id" params={{ id: r.id }} className="block">
-                  <Card className="transition-colors hover:border-primary/50">
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <div className="flex flex-wrap gap-2">
-                          <Pill tone="primary">Level {r.level}</Pill>
-                          <Pill tone="muted">{r.category}</Pill>
-                        </div>
-                        <h2 className="mt-3 font-semibold">{r.title}</h2>
-                        <p className="mt-1 text-sm text-muted-foreground">
-                          For {s.name}, {s.age} | {s.language}
-                        </p>
-                        <div className="mt-3 flex flex-wrap gap-4 text-sm text-muted-foreground">
-                          <span className="inline-flex items-center gap-1">
-                            <Clock className="size-4" />
-                            {r.durationMin} min
-                          </span>
-                          <span className="inline-flex items-center gap-1">
-                            <MapPin className="size-4" />
-                            {r.area}
-                          </span>
-                        </div>
-                      </div>
-                      <ArrowRight className="mt-1 size-4 text-muted-foreground" />
-                    </div>
-                  </Card>
-                </Link>
-              );
-            })}
+        {myActive && (
+          <div className="mt-5">
+            <h2 className="mb-3 text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+              Your active task
+            </h2>
+            <RequestCard r={myActive} />
           </div>
+        )}
 
-          <Card className="mt-5 bg-accent/60">
-            <div className="flex gap-3">
-              <ShieldCheck className="mt-0.5 size-5 text-accent-foreground" />
-              <p className="text-sm leading-6 text-accent-foreground">
-                Stay within the task brief. If anything feels unsafe, call the caregiver or
-                emergency services.
-              </p>
+        <div className="mt-6 flex items-center justify-between">
+          <h2 className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+            Available tasks
+          </h2>
+          <button className="text-xs font-medium text-primary">Certificate →</button>
+        </div>
+
+        <div className="mt-3 flex gap-2">
+          {(["all", "nearby", "urgent"] as const).map((f) => (
+            <button
+              key={f}
+              onClick={() => setFilter(f)}
+              className={`rounded-full px-4 py-1.5 text-sm font-medium border capitalize ${
+                filter === f
+                  ? "bg-primary text-primary-foreground border-primary"
+                  : "bg-card text-muted-foreground"
+              }`}
+            >
+              {f}
+            </button>
+          ))}
+        </div>
+
+        <div className="mt-4">
+          {rows === null ? (
+            <CardSkeleton />
+          ) : visible.length === 0 ? (
+            <EmptyHint title="No open tasks right now" hint="Check back soon — new tasks appear all day." />
+          ) : (
+            <div className="space-y-3">
+              {visible.map((r) => (
+                <RequestCard key={r.id} r={r} />
+              ))}
             </div>
-          </Card>
-        </section>
+          )}
+        </div>
       </div>
     </AppShell>
+  );
+}
+
+function Stat({ label, value }: { label: string; value: string | number }) {
+  return (
+    <div className="rounded-2xl bg-card border p-4 shadow-card">
+      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className="text-2xl font-bold mt-1">{value}</p>
+    </div>
   );
 }

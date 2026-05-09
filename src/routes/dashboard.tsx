@@ -1,212 +1,186 @@
-import { createFileRoute, Link, Navigate } from "@tanstack/react-router";
-import { AppShell } from "@/components/AppShell";
-import { Card, Pill, SectionTitle, StatCard } from "@/components/ui-bits";
+import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { AppShell, PageHeader } from "@/components/AppShell";
 import { useSession } from "@/lib/session";
-import { appointments, medications, requests, seniors, volunteers } from "@/lib/mock-data";
-import {
-  AlertTriangle,
-  ArrowRight,
-  CalendarDays,
-  Footprints,
-  Pill as PillIcon,
-  Plus,
-  UserRoundCheck,
-} from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { Bell, Loader2, MapPin, Plus } from "lucide-react";
+import { taskMeta } from "@/lib/tasks";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/dashboard")({
-  head: () => ({ meta: [{ title: "Today | CareKampung" }] }),
+  beforeLoad: async () => {
+    const { data } = await supabase.auth.getSession();
+    if (!data.session) throw redirect({ to: "/login" });
+  },
   component: Dashboard,
 });
 
-function Dashboard() {
-  const { role } = useSession();
-  if (!role) return <Navigate to="/" />;
-  if (role !== "caregiver") return <Navigate to={role === "volunteer" ? "/volunteer" : "/admin"} />;
+interface RequestRow {
+  id: string;
+  title: string;
+  task_type: string;
+  location: string;
+  date_needed: string;
+  time_needed: string;
+  status: string;
+  created_at: string;
+  claimed_by: string | null;
+  claimer?: { name: string } | null;
+}
 
-  const nextAppointment = appointments[0];
-  const appointmentSenior = seniors.find((s) => s.id === nextAppointment.seniorId)!;
-  const lowStockMeds = medications.filter((m) => m.remaining <= m.refillAt);
-  const openRequests = requests.filter((r) => r.status === "open");
-  const acceptedRequest = requests.find((r) => r.status === "accepted");
-  const assignedVolunteer = volunteers.find((v) => v.id === acceptedRequest?.acceptedBy);
+function Dashboard() {
+  const { profile } = useSession();
+  const nav = useNavigate();
+  const [rows, setRows] = useState<RequestRow[] | null>(null);
+
+  useEffect(() => {
+    if (!profile) return;
+    if (profile.role === "volunteer") {
+      nav({ to: "/volunteer", replace: true });
+      return;
+    }
+    supabase
+      .from("requests")
+      .select("*, claimer:profiles!requests_claimed_by_fkey(name)")
+      .eq("requester_id", profile.id)
+      .order("created_at", { ascending: false })
+      .then(({ data, error }) => {
+        if (error) {
+          toast.error(error.message);
+          setRows([]);
+          return;
+        }
+        setRows((data ?? []) as RequestRow[]);
+      });
+  }, [profile, nav]);
+
+  if (!profile) {
+    return (
+      <AppShell>
+        <div className="container-app pt-12 grid place-items-center">
+          <Loader2 className="size-6 animate-spin text-muted-foreground" />
+        </div>
+      </AppShell>
+    );
+  }
+
+  const open = (rows ?? []).filter((r) => r.status === "open");
+  const active = (rows ?? []).filter((r) => r.status !== "open");
 
   return (
     <AppShell>
-      <div className="grid gap-5 lg:grid-cols-[1.1fr_0.9fr]">
-        <section>
-          <div className="rounded-lg border bg-card p-5 shadow-card">
-            <p className="text-sm font-medium text-muted-foreground">Today, 9 May</p>
-            <h1 className="mt-2 text-2xl font-semibold tracking-tight">
-              Wei Ming, these are the next care actions.
-            </h1>
-            <div className="mt-5 grid gap-3 sm:grid-cols-3">
-              <StatCard
-                label="Open help requests"
-                value={openRequests.length}
-                hint="Needs volunteer"
-                tone="warning"
-              />
-              <StatCard label="Appointments" value={appointments.length} hint="Upcoming" />
-              <StatCard
-                label="Medicine refill"
-                value={lowStockMeds.length}
-                hint="Check stock"
-                tone={lowStockMeds.length ? "warning" : "success"}
-              />
-            </div>
+      <PageHeader
+        title={`Hi, ${profile.name.split(" ")[0]}`}
+        subtitle="Here's what's happening with your care requests."
+        right={
+          <span className="size-10 grid place-items-center rounded-full bg-card border">
+            <Bell className="size-5" />
+          </span>
+        }
+      />
+
+      <div className="container-app">
+        <Link
+          to="/requests/new"
+          className="flex items-center gap-3 rounded-2xl bg-primary text-primary-foreground p-4 shadow-elevated"
+        >
+          <span className="size-11 grid place-items-center rounded-xl bg-primary-foreground/15">
+            <Plus className="size-6" />
+          </span>
+          <div className="flex-1">
+            <p className="font-semibold">Post a new request</p>
+            <p className="text-xs opacity-90">A volunteer can pick it up in minutes.</p>
           </div>
+        </Link>
 
-          <SectionTitle
-            title="Most Important"
-            action={
-              <Link
-                to="/requests/new"
-                className="inline-flex items-center gap-1 rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground"
-              >
-                <Plus className="size-4" /> Request help
-              </Link>
-            }
-          />
-          <Card className="border-primary/30">
-            <div className="flex items-start gap-4">
-              <div className="size-11 rounded-md bg-primary/10 text-primary grid place-items-center shrink-0">
-                <CalendarDays className="size-5" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-center gap-2">
-                  <h2 className="font-semibold">{nextAppointment.title}</h2>
-                  {nextAppointment.needsEscort && <Pill tone="warning">Escort needed</Pill>}
-                </div>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {appointmentSenior.name} at{" "}
-                  {new Date(nextAppointment.datetime).toLocaleTimeString("en-SG", {
-                    hour: "numeric",
-                    minute: "2-digit",
-                  })}
-                </p>
-                <p className="mt-2 text-sm">{nextAppointment.location}</p>
-                {nextAppointment.itemsToBring && (
-                  <p className="mt-3 text-sm text-muted-foreground">
-                    Bring: {nextAppointment.itemsToBring.join(", ")}
-                  </p>
-                )}
-              </div>
-              <Link
-                to="/schedule"
-                className="rounded-md border p-2 text-muted-foreground hover:text-primary"
-                aria-label="Open schedule"
-              >
-                <ArrowRight className="size-4" />
-              </Link>
-            </div>
-          </Card>
-
-          <SectionTitle title="Requests" />
-          <div className="grid gap-3">
-            {requests.slice(0, 3).map((r) => {
-              const senior = seniors.find((s) => s.id === r.seniorId)!;
-              return (
-                <Link key={r.id} to="/requests/$id" params={{ id: r.id }} className="block">
-                  <Card className="transition-colors hover:border-primary/50">
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <div className="flex flex-wrap items-center gap-2">
-                          <p className="font-semibold">{r.title}</p>
-                          <Pill tone={r.status === "open" ? "warning" : "primary"}>{r.status}</Pill>
-                        </div>
-                        <p className="mt-1 text-sm text-muted-foreground">
-                          {senior.name} | {r.area} | Level {r.level}
-                        </p>
-                      </div>
-                      <ArrowRight className="mt-1 size-4 text-muted-foreground" />
-                    </div>
-                  </Card>
-                </Link>
-              );
-            })}
+        <h2 className="mt-7 mb-3 text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+          Open requests
+        </h2>
+        {rows === null ? (
+          <CardSkeleton />
+        ) : open.length === 0 ? (
+          <EmptyHint title="No open requests" hint="Tap 'Post a new request' to get started." />
+        ) : (
+          <div className="space-y-3">
+            {open.map((r) => (
+              <RequestCard key={r.id} r={r} />
+            ))}
           </div>
-        </section>
+        )}
 
-        <aside>
-          <SectionTitle title="Safety Handover" />
-          <Card className="border-destructive/35 bg-destructive/5">
-            <div className="flex items-start gap-3">
-              <AlertTriangle className="mt-0.5 size-5 text-destructive shrink-0" />
-              <div>
-                <p className="font-semibold">Emergency information is ready</p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Preferred hospital, allergies, and next-of-kin are available from the senior
-                  profile.
-                </p>
-                <Link
-                  to="/senior"
-                  className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-destructive"
-                >
-                  View profile <ArrowRight className="size-4" />
-                </Link>
-              </div>
-            </div>
-          </Card>
-
-          <SectionTitle title="This Week" />
-          <Card>
-            <div className="flex items-center gap-3">
-              <div className="size-10 rounded-md bg-accent text-accent-foreground grid place-items-center">
-                <Footprints className="size-5" />
-              </div>
-              <div>
-                <p className="font-semibold">Walks completed: 5 of 7</p>
-                <p className="text-sm text-muted-foreground">
-                  Target: four supervised walks weekly
-                </p>
-              </div>
-            </div>
-            <div className="mt-4 grid grid-cols-7 gap-1">
-              {["M", "T", "W", "T", "F", "S", "S"].map((d, i) => (
-                <div key={`${d}-${i}`} className="text-center">
-                  <div
-                    className={`h-8 rounded-md border text-xs font-semibold grid place-items-center ${i < 5 ? "bg-accent border-accent text-accent-foreground" : "bg-muted text-muted-foreground"}`}
-                  >
-                    {i < 5 ? "Done" : ""}
-                  </div>
-                  <p className="mt-1 text-xs text-muted-foreground">{d}</p>
-                </div>
-              ))}
-            </div>
-          </Card>
-
-          <SectionTitle title="Medication Check" />
-          <Card>
-            <div className="flex items-start gap-3">
-              <PillIcon className="mt-1 size-5 text-primary" />
-              <div>
-                <p className="font-semibold">Amlodipine has 5 tablets left</p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Volunteers can remind only. Caregiver handles medication.
-                </p>
-              </div>
-            </div>
-          </Card>
-
-          {assignedVolunteer && (
-            <>
-              <SectionTitle title="Assigned Volunteer" />
-              <Card>
-                <div className="flex items-center gap-3">
-                  <div className="size-10 rounded-md bg-secondary grid place-items-center text-sm font-semibold">
-                    {assignedVolunteer.photo}
-                  </div>
-                  <div>
-                    <p className="font-semibold">{assignedVolunteer.name}</p>
-                    <p className="text-sm text-muted-foreground">{acceptedRequest?.title}</p>
-                  </div>
-                  <UserRoundCheck className="ml-auto size-5 text-primary" />
-                </div>
-              </Card>
-            </>
-          )}
-        </aside>
+        <h2 className="mt-8 mb-3 text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+          In progress &amp; completed
+        </h2>
+        {rows === null ? null : active.length === 0 ? (
+          <EmptyHint title="No active tasks yet" />
+        ) : (
+          <div className="space-y-3">
+            {active.map((r) => (
+              <RequestCard key={r.id} r={r} />
+            ))}
+          </div>
+        )}
       </div>
     </AppShell>
+  );
+}
+
+export function RequestCard({ r }: { r: RequestRow & { requester?: { name: string } | null } }) {
+  const meta = taskMeta(r.task_type);
+  const Icon = meta.icon;
+  const tone =
+    r.status === "open"
+      ? "bg-primary-soft text-primary-soft-foreground"
+      : r.status === "claimed"
+        ? "bg-warning/20 text-warning-foreground"
+        : "bg-success/15 text-success";
+  return (
+    <Link
+      to="/requests/$id"
+      params={{ id: r.id }}
+      className="block rounded-2xl bg-card border p-4 shadow-card active:scale-[0.99] transition-transform"
+    >
+      <div className="flex items-start gap-3">
+        <span className="size-11 grid place-items-center rounded-xl bg-primary-soft text-primary shrink-0">
+          <Icon className="size-5" />
+        </span>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-start justify-between gap-2">
+            <p className="font-semibold leading-tight">{r.title}</p>
+            <span className={`text-[10px] font-semibold uppercase rounded-full px-2 py-1 ${tone}`}>
+              {r.status}
+            </span>
+          </div>
+          <p className="text-xs text-muted-foreground mt-1 capitalize">{meta.label}</p>
+          <div className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground">
+            <MapPin className="size-3.5" />
+            <span className="truncate">{r.location}</span>
+            <span>·</span>
+            <span>{r.date_needed}</span>
+            <span>·</span>
+            <span>{r.time_needed}</span>
+          </div>
+        </div>
+      </div>
+    </Link>
+  );
+}
+
+export function CardSkeleton() {
+  return (
+    <div className="space-y-3">
+      {[0, 1].map((i) => (
+        <div key={i} className="rounded-2xl bg-card border p-4 h-24 animate-pulse" />
+      ))}
+    </div>
+  );
+}
+
+export function EmptyHint({ title, hint }: { title: string; hint?: string }) {
+  return (
+    <div className="rounded-2xl border border-dashed bg-card/60 p-8 text-center">
+      <p className="font-semibold">{title}</p>
+      {hint && <p className="text-sm text-muted-foreground mt-1">{hint}</p>}
+    </div>
   );
 }
