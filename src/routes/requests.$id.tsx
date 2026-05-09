@@ -14,6 +14,7 @@ import {
   ShieldAlert,
   KeyRound,
   PlayCircle,
+  Wallet,
 } from "lucide-react";
 
 export const Route = createFileRoute("/requests/$id")({
@@ -38,6 +39,7 @@ interface RequestRow {
   claimed_by: string | null;
   start_pin: string | null;
   end_pin: string | null;
+  payment_amount: number | null;
   requester: { name: string; avatar_url: string | null } | null;
   claimer: { name: string; avatar_url: string | null } | null;
 }
@@ -132,6 +134,31 @@ function TaskDetail() {
             label="Posted"
             text={`${Math.max(1, Math.round(ageHours))}h ago`}
           />
+        </div>
+
+        <div className="mt-4 rounded-2xl border border-primary/30 bg-gradient-to-br from-primary-soft to-card p-4 flex items-center gap-3">
+          <span className="size-11 grid place-items-center rounded-xl bg-primary text-primary-foreground">
+            <Wallet className="size-5" />
+          </span>
+          <div className="flex-1 min-w-0">
+            <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
+              {r.status === "in_progress"
+                ? "Payment on hold"
+                : r.status === "completed"
+                  ? "Payment released"
+                  : "Payment offered"}
+            </p>
+            <p className="text-2xl font-bold text-primary">
+              S${Number(r.payment_amount ?? 0).toFixed(2)}
+            </p>
+          </div>
+          <span className="text-[11px] text-muted-foreground max-w-[40%] text-right leading-tight">
+            {r.status === "in_progress"
+              ? "Released after end PIN"
+              : r.status === "completed"
+                ? "Sent to volunteer"
+                : "Held securely until task ends"}
+          </span>
         </div>
 
         {r.notes && (

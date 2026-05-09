@@ -24,6 +24,7 @@ function NewRequest() {
   const [time, setTime] = useState("");
   const [location, setLocation] = useState("");
   const [notes, setNotes] = useState("");
+  const [payment, setPayment] = useState("10");
   const [busy, setBusy] = useState(false);
 
   const onSubmit = async (e: React.FormEvent) => {
@@ -37,6 +38,7 @@ function NewRequest() {
       time_needed: time,
       location,
       notes: notes || null,
+      payment_amount: Number(payment) || 0,
       requester_id: profile.id,
     });
     setBusy(false);
@@ -142,6 +144,28 @@ function NewRequest() {
             className="kinput resize-none"
             placeholder="Any specific instructions or accessibility needs."
           />
+        </Field>
+
+        <Field label="Payment offered (SGD)">
+          <div className="relative">
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-semibold">
+              S$
+            </span>
+            <input
+              required
+              type="number"
+              min={0}
+              step={1}
+              value={payment}
+              onChange={(e) => setPayment(e.target.value)}
+              className="kinput pl-10"
+              placeholder="10"
+            />
+          </div>
+          <span className="block text-xs text-muted-foreground mt-1.5">
+            Held securely while the task is in progress and released to the volunteer when they
+            enter your end PIN.
+          </span>
         </Field>
 
         <button

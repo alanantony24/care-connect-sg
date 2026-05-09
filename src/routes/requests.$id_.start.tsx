@@ -1,5 +1,5 @@
 import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { ArrowLeft, ShieldCheck, Loader2, ArrowRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/lib/session";
@@ -21,53 +21,49 @@ function StartPin() {
   const nav = useNavigate();
   const [pin, setPin] = useState("");
   const [busy, setBusy] = useState(false);
-  const [actualPin, setActualPin] = useState<string | null>(null);
-  const [status, setStatus] = useState<string>("");
-
-  useEffect(() => {
-    supabase
-      .from("requests")
-      .select("start_pin, status, claimed_by")
-      .eq("id", id)
-      .maybeSingle()
-      .then(({ data }) => {
-        setActualPin(data?.start_pin ?? null);
-        setStatus(data?.status ?? "");
-      });
-  }, [id]);
 
   const verify = async () => {
     if (pin.length !== 4 || !profile) return;
     setBusy(true);
-    if (pin !== actualPin) {
+
+    const { data: req } = await supabase
+      .from("requests")
+      .select("start_pin, status, claimed_by, created_at")
+      .eq("id", id)
+      .maybeSingle();
+
+    if (!req || pin !== req.start_pin) {
       setBusy(false);
       setPin("");
       toast.error("Incorrect PIN. Ask the care recipient to share the start PIN.");
       return;
     }
 
-    // If unclaimed, claim it now
-    if (status === "open") {
-      const { data: r } = await supabase
-        .from("requests")
-        .select("created_at")
-        .eq("id", id)
-        .maybeSingle();
-      await supabase
-        .from("requests")
-        .update({ claimed_by: profile.id, status: "in_progress", started_at: new Date().toISOString() })
-        .eq("id", id);
-      if (r?.created_at) await checkBadgesOnClaim(profile.id, r.created_at);
-    } else {
-      await supabase
-        .from("requests")
-        .update({ status: "in_progress", started_at: new Date().toISOString() })
-        .eq("id", id);
+    const startedAt = new Date().toISOString();
+    const { error } =
+      req.status === "open" && !req.claimed_by
+        ? await supabase
+            .from("requests")
+            .update({ status: "in_progress", started_at: startedAt, claimed_by: profile.id })
+            .eq("id", id)
+        : await supabase
+            .from("requests")
+            .update({ status: "in_progress", started_at: startedAt })
+            .eq("id", id);
+    if (error) {
+      setBusy(false);
+      toast.error(error.message);
+      return;
     }
+
+    if (req.status === "open" && req.created_at) {
+      await checkBadgesOnClaim(profile.id, req.created_at);
+    }
+
     await refresh();
     toast.success("Task started!");
-    nav({ to: "/requests/$id", params: { id } });
     setBusy(false);
+    nav({ to: "/requests/$id", params: { id } });
   };
 
   return (

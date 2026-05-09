@@ -122,11 +122,10 @@ function VolunteerHome() {
           </div>
         )}
 
-        <div className="mt-6 flex items-center justify-between">
+        <div className="mt-6">
           <h2 className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
             Available tasks
           </h2>
-          <button className="text-xs font-medium text-primary">Certificate →</button>
         </div>
 
         <div className="mt-3 flex gap-2">

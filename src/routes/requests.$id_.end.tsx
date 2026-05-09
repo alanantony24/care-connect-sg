@@ -1,6 +1,6 @@
 import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowLeft, Lock, Loader2, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Lock, Loader2, CheckCircle2, Wallet, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/lib/session";
 import { PinDisplay, PinKeypad } from "@/components/PinPad";
@@ -21,36 +21,33 @@ function EndPin() {
   const nav = useNavigate();
   const [pin, setPin] = useState("");
   const [busy, setBusy] = useState(false);
-  const [actualPin, setActualPin] = useState<string | null>(null);
-  const [claimedBy, setClaimedBy] = useState<string | null>(null);
-
-  useEffect(() => {
-    supabase
-      .from("requests")
-      .select("end_pin, claimed_by")
-      .eq("id", id)
-      .maybeSingle()
-      .then(({ data }) => {
-        setActualPin(data?.end_pin ?? null);
-        setClaimedBy(data?.claimed_by ?? null);
-      });
-  }, [id]);
+  const [showPayout, setShowPayout] = useState(false);
+  const [payout, setPayout] = useState(0);
+  const [requesterName, setRequesterName] = useState("the caregiver");
 
   const verify = async () => {
     if (pin.length !== 4 || !profile) return;
     setBusy(true);
-    if (pin !== actualPin) {
+
+    const { data: req } = await supabase
+      .from("requests")
+      .select("end_pin, claimed_by, payment_amount, requester:profiles!requests_requester_id_fkey(name)")
+      .eq("id", id)
+      .maybeSingle();
+
+    if (!req || pin !== req.end_pin) {
       setBusy(false);
       setPin("");
       toast.error("Incorrect PIN.");
       return;
     }
+
     await supabase
       .from("requests")
       .update({ status: "completed", completed_at: new Date().toISOString() })
       .eq("id", id);
 
-    const helperId = claimedBy ?? profile.id;
+    const helperId = req.claimed_by ?? profile.id;
     const { data: helperProfile } = await supabase
       .from("profiles")
       .select("tasks_helped")
@@ -61,9 +58,21 @@ function EndPin() {
     if (helperId === profile.id) await checkBadgesOnComplete(profile.id, next);
 
     await refresh();
-    toast.success("Task completed!");
-    nav({ to: "/requests/$id/review", params: { id } });
+    setPayout(Number(req.payment_amount ?? 0));
+    setRequesterName((req as any).requester?.name ?? "the caregiver");
     setBusy(false);
+
+    if (profile.role === "volunteer") {
+      setShowPayout(true);
+    } else {
+      toast.success("Task completed!");
+      nav({ to: "/requests/$id/review", params: { id } });
+    }
+  };
+
+  const closePayout = () => {
+    setShowPayout(false);
+    nav({ to: "/requests/$id/review", params: { id } });
   };
 
   return (
@@ -106,6 +115,41 @@ function EndPin() {
           </button>
         </div>
       </div>
+
+      {showPayout && (
+        <div
+          className="fixed inset-0 z-50 grid place-items-center bg-foreground/40 backdrop-blur-sm p-5"
+          onClick={closePayout}
+        >
+          <div
+            className="w-full max-w-sm rounded-3xl bg-card shadow-elevated p-6 text-center relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="size-16 rounded-full bg-success/15 text-success grid place-items-center mx-auto">
+              <Wallet className="size-8" />
+            </div>
+            <h2 className="text-2xl font-bold mt-4 flex items-center justify-center gap-2">
+              Payment Released <Sparkles className="size-5 text-warning" />
+            </h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              {requesterName} has released your payment for completing the task.
+            </p>
+            <div className="mt-5 rounded-2xl bg-primary-soft text-primary py-5">
+              <p className="text-xs uppercase tracking-wider font-semibold">You received</p>
+              <p className="text-4xl font-bold mt-1">S${payout.toFixed(2)}</p>
+            </div>
+            <p className="mt-4 text-xs text-muted-foreground">
+              Funds will appear in your linked account within 1–2 business days.
+            </p>
+            <button
+              onClick={closePayout}
+              className="mt-6 w-full rounded-full bg-primary text-primary-foreground py-3.5 font-semibold shadow-elevated"
+            >
+              Continue to review
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
