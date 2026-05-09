@@ -3,10 +3,10 @@ import { AppShell } from "@/components/AppShell";
 import { Card, Pill, SectionTitle } from "@/components/ui-bits";
 import { useSession } from "@/lib/session";
 import { seniors } from "@/lib/mock-data";
-import { AlertTriangle, Heart, Phone } from "lucide-react";
+import { AlertTriangle, Phone, ShieldCheck } from "lucide-react";
 
 export const Route = createFileRoute("/senior")({
-  head: () => ({ meta: [{ title: "Senior profile · CareKampung" }] }),
+  head: () => ({ meta: [{ title: "Senior profile | CareKampung" }] }),
   component: SeniorPage,
 });
 
@@ -17,67 +17,109 @@ function SeniorPage() {
 
   return (
     <AppShell>
-      <Card className="!p-0 overflow-hidden">
-        <div className="gradient-warm p-5">
-          <div className="flex items-center gap-4">
-            <div className="size-16 rounded-2xl bg-card grid place-items-center text-4xl shadow-card">{senior.photo}</div>
-            <div>
-              <h1 className="text-xl font-bold">{senior.name}</h1>
-              <p className="text-sm text-foreground/70">{senior.age} years · {senior.language}</p>
-              <div className="flex gap-1.5 mt-1.5">
-                <Pill tone="primary">{senior.mobility}</Pill>
-                <Pill tone={senior.fallRisk === "High" ? "danger" : senior.fallRisk === "Medium" ? "warning" : "success"}>
-                  Fall: {senior.fallRisk}
-                </Pill>
+      <div className="grid gap-5 lg:grid-cols-[0.85fr_1.15fr]">
+        <section>
+          <Card>
+            <div className="flex items-center gap-4">
+              <div className="size-16 rounded-lg bg-primary text-primary-foreground grid place-items-center text-lg font-semibold">
+                {senior.photo}
+              </div>
+              <div>
+                <h1 className="text-2xl font-semibold tracking-tight">{senior.name}</h1>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {senior.age} years | {senior.language}
+                </p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <Pill tone="primary">{senior.mobility}</Pill>
+                  <Pill
+                    tone={
+                      senior.fallRisk === "High"
+                        ? "danger"
+                        : senior.fallRisk === "Medium"
+                          ? "warning"
+                          : "success"
+                    }
+                  >
+                    Fall risk: {senior.fallRisk}
+                  </Pill>
+                </div>
               </div>
             </div>
-          </div>
-        </div>
-      </Card>
+          </Card>
 
-      <SectionTitle title="Medical conditions" />
-      <Card>
-        <div className="flex flex-wrap gap-2">
-          {senior.conditions.map((c) => (
-            <Pill key={c} tone="primary">{c}</Pill>
-          ))}
-          {senior.allergies.length > 0 && senior.allergies.map((a) => (
-            <Pill key={a} tone="danger">⚠ {a}</Pill>
-          ))}
-        </div>
-      </Card>
+          <SectionTitle title="Safe To Share" />
+          <Card>
+            <div className="flex flex-wrap gap-2">
+              {senior.safeToShare.map((item) => (
+                <Pill key={item}>{item}</Pill>
+              ))}
+            </div>
+            <p className="mt-4 text-sm leading-6 text-muted-foreground">
+              Volunteers see task-relevant context only. Caregiver retains full medical control.
+            </p>
+          </Card>
 
-      <SectionTitle title="Care notes" />
-      <Card className="border-accent">
-        <p className="text-xs text-muted-foreground mb-2 font-medium">Please read before each visit</p>
-        <ul className="space-y-2">
-          {senior.careNotes.map((n) => (
-            <li key={n} className="flex items-start gap-2 text-sm">
-              <Heart className="size-4 text-primary shrink-0 mt-0.5" fill="currentColor" />
-              <span>{n}</span>
-            </li>
-          ))}
-        </ul>
-      </Card>
+          <SectionTitle title="Conditions" />
+          <Card>
+            <div className="flex flex-wrap gap-2">
+              {senior.conditions.map((c) => (
+                <Pill key={c} tone="primary">
+                  {c}
+                </Pill>
+              ))}
+              {senior.allergies.map((a) => (
+                <Pill key={a} tone="danger">
+                  Allergy: {a}
+                </Pill>
+              ))}
+            </div>
+          </Card>
+        </section>
 
-      <SectionTitle title="Emergency" />
-      <Card className="border-destructive/40 bg-destructive/5">
-        <div className="flex items-start gap-3">
-          <AlertTriangle className="size-5 text-destructive shrink-0 mt-0.5" />
-          <div className="flex-1 space-y-1.5 text-sm">
-            <p><span className="text-muted-foreground">Hospital:</span> <span className="font-medium">{senior.preferredHospital}</span></p>
-            <p><span className="text-muted-foreground">Contact:</span> <span className="font-medium">{senior.emergencyContact.name}</span> ({senior.emergencyContact.relation})</p>
-            <a href={`tel:${senior.emergencyContact.phone.replace(/\s/g, "")}`} className="inline-flex items-center gap-1.5 text-destructive font-semibold">
-              <Phone className="size-4" /> {senior.emergencyContact.phone}
-            </a>
-          </div>
-        </div>
-      </Card>
+        <section>
+          <SectionTitle title="Before Each Visit" />
+          <Card className="border-primary/25">
+            <ul className="space-y-3">
+              {senior.careNotes.map((note) => (
+                <li key={note} className="flex gap-3 text-sm leading-6">
+                  <ShieldCheck className="mt-0.5 size-4 shrink-0 text-primary" />
+                  <span>{note}</span>
+                </li>
+              ))}
+            </ul>
+          </Card>
 
-      <SectionTitle title="Wellness preferences" />
-      <Card>
-        <p className="text-sm">{senior.exercisePref}</p>
-      </Card>
+          <SectionTitle title="Emergency" />
+          <Card className="border-destructive/35 bg-destructive/5">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="mt-0.5 size-5 shrink-0 text-destructive" />
+              <div className="space-y-2 text-sm">
+                <p>
+                  <span className="text-muted-foreground">Preferred hospital:</span>{" "}
+                  <span className="font-semibold">{senior.preferredHospital}</span>
+                </p>
+                <p>
+                  <span className="text-muted-foreground">Next-of-kin:</span>{" "}
+                  <span className="font-semibold">{senior.emergencyContact.name}</span> (
+                  {senior.emergencyContact.relation})
+                </p>
+                <a
+                  href={`tel:${senior.emergencyContact.phone.replace(/\s/g, "")}`}
+                  className="inline-flex items-center gap-2 rounded-md bg-destructive px-3 py-2 font-semibold text-destructive-foreground"
+                >
+                  <Phone className="size-4" /> {senior.emergencyContact.phone}
+                </a>
+              </div>
+            </div>
+          </Card>
+
+          <SectionTitle title="Wellness Preference" />
+          <Card>
+            <p className="text-sm leading-6">{senior.exercisePref}</p>
+            <p className="mt-3 text-sm text-muted-foreground">{senior.address}</p>
+          </Card>
+        </section>
+      </div>
     </AppShell>
   );
 }

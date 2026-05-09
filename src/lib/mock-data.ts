@@ -15,6 +15,8 @@ export interface Senior {
   fallRisk: "Low" | "Medium" | "High";
   preferredHospital: string;
   allergies: string[];
+  address: string;
+  safeToShare: string[];
 }
 
 export interface Appointment {
@@ -53,11 +55,12 @@ export interface HelpRequest {
   datetime: string;
   durationMin: number;
   location: string;
-  area: string; // SG region
+  area: string;
   instructions: string;
   status: "open" | "accepted" | "completed";
   acceptedBy?: string;
   rating?: number;
+  level: 1 | 2 | 3;
 }
 
 export interface Volunteer {
@@ -83,7 +86,7 @@ export const seniors: Senior[] = [
     id: "s1",
     name: "Tan Ah Kow",
     age: 78,
-    photo: "👴",
+    photo: "TA",
     language: "Mandarin / Hokkien",
     conditions: ["Type 2 Diabetes", "Mild hypertension"],
     mobility: "Walking aid",
@@ -91,33 +94,37 @@ export const seniors: Senior[] = [
     caregiverRelation: "Son",
     exercisePref: "Morning walk at Bishan Park",
     careNotes: [
-      "Gets anxious when rushed — speak slowly",
-      "Prefers Mandarin / Hokkien",
-      "Avoid discussing medical issues directly",
+      "Gets anxious when rushed. Speak slowly.",
+      "Prefers Mandarin or Hokkien.",
+      "Avoid discussing medical issues directly.",
     ],
     fallRisk: "Medium",
     preferredHospital: "Tan Tock Seng Hospital",
     allergies: ["Penicillin"],
+    address: "Block 234 Bishan Street 22",
+    safeToShare: ["Language", "Mobility", "Care notes", "Emergency contact"],
   },
   {
     id: "s2",
     name: "Siti Aminah",
     age: 72,
-    photo: "👵",
+    photo: "SA",
     language: "Malay / English",
-    conditions: ["Chronic kidney disease (Stage 4)", "Arthritis"],
+    conditions: ["Chronic kidney disease", "Arthritis"],
     mobility: "Independent",
     emergencyContact: { name: "Nurul Aminah", phone: "+65 9876 5432", relation: "Daughter" },
     caregiverRelation: "Daughter",
     exercisePref: "Light stretching at home",
     careNotes: [
-      "Dialysis 3x weekly — gets tired easily",
-      "Bring water and light snack",
-      "Prays at Maghrib — avoid scheduling 7pm",
+      "Dialysis 3 times a week. Gets tired easily.",
+      "Bring water and a light snack.",
+      "Prays at Maghrib. Avoid scheduling around 7pm.",
     ],
     fallRisk: "Low",
     preferredHospital: "National University Hospital",
     allergies: [],
+    address: "Block 410 Clementi Avenue 1",
+    safeToShare: ["Language", "Mobility", "Care notes", "Appointment items"],
   },
 ];
 
@@ -129,7 +136,7 @@ export const appointments: Appointment[] = [
     title: "Dialysis session",
     datetime: iso(0, 14, 0),
     location: "NUH Dialysis Centre, Kent Ridge",
-    notes: "Session ~4 hours. Bring blanket, snack.",
+    notes: "Session is around 4 hours. Bring blanket and snack.",
     itemsToBring: ["IC", "Medical card", "Light snack", "Water"],
     needsEscort: true,
   },
@@ -137,7 +144,7 @@ export const appointments: Appointment[] = [
     id: "a2",
     seniorId: "s1",
     type: "Physiotherapy",
-    title: "Physio — knee mobility",
+    title: "Physio: knee mobility",
     datetime: iso(1, 10, 30),
     location: "Bishan Polyclinic",
     notes: "Wear loose pants and supportive shoes.",
@@ -156,9 +163,36 @@ export const appointments: Appointment[] = [
 ];
 
 export const medications: Medication[] = [
-  { id: "m1", seniorId: "s1", name: "Metformin", dosage: "500mg", timing: "8:00 AM", food: "after", remaining: 18, refillAt: 7 },
-  { id: "m2", seniorId: "s1", name: "Amlodipine", dosage: "5mg", timing: "8:00 AM", food: "any", remaining: 5, refillAt: 7 },
-  { id: "m3", seniorId: "s2", name: "Calcium + Vit D", dosage: "1 tab", timing: "9:00 AM", food: "after", remaining: 24, refillAt: 10 },
+  {
+    id: "m1",
+    seniorId: "s1",
+    name: "Metformin",
+    dosage: "500mg",
+    timing: "8:00 AM",
+    food: "after",
+    remaining: 18,
+    refillAt: 7,
+  },
+  {
+    id: "m2",
+    seniorId: "s1",
+    name: "Amlodipine",
+    dosage: "5mg",
+    timing: "8:00 AM",
+    food: "any",
+    remaining: 5,
+    refillAt: 7,
+  },
+  {
+    id: "m3",
+    seniorId: "s2",
+    name: "Calcium + Vit D",
+    dosage: "1 tab",
+    timing: "9:00 AM",
+    food: "after",
+    remaining: 24,
+    refillAt: 10,
+  },
 ];
 
 export const requests: HelpRequest[] = [
@@ -171,8 +205,9 @@ export const requests: HelpRequest[] = [
     durationMin: 60,
     location: "Bishan-AMK Park, Entrance C",
     area: "Bishan",
-    instructions: "Walk slowly, take breaks at benches. Speaks Hokkien.",
+    instructions: "Walk slowly and take breaks at benches. Speaks Hokkien.",
     status: "open",
+    level: 3,
   },
   {
     id: "r2",
@@ -183,21 +218,23 @@ export const requests: HelpRequest[] = [
     durationMin: 300,
     location: "NUH Dialysis Centre",
     area: "Kent Ridge",
-    instructions: "Bring wheelchair from lobby. Patient prefers Malay.",
+    instructions: "Meet at the block lobby. Patient prefers Malay.",
     status: "accepted",
     acceptedBy: "v1",
+    level: 2,
   },
   {
     id: "r3",
     seniorId: "s1",
     category: "Companionship",
-    title: "Afternoon companionship & tea",
+    title: "Afternoon companionship and tea",
     datetime: iso(2, 15, 0),
     durationMin: 90,
-    location: "Block 234 Bishan St 22",
+    location: "Block 234 Bishan Street 22",
     area: "Bishan",
     instructions: "Loves discussing old Singapore stories.",
     status: "open",
+    level: 1,
   },
   {
     id: "r4",
@@ -210,13 +247,38 @@ export const requests: HelpRequest[] = [
     area: "Clementi",
     instructions: "Shopping list will be provided. Halal items only.",
     status: "open",
+    level: 1,
   },
 ];
 
 export const volunteers: Volunteer[] = [
-  { id: "v1", name: "Aisha Rahman", photo: "🧕", area: "Clementi", rating: 4.9, tasksDone: 47, verified: true },
-  { id: "v2", name: "Daniel Lim", photo: "🧑", area: "Bishan", rating: 4.8, tasksDone: 32, verified: true },
-  { id: "v3", name: "Priya Krishnan", photo: "👩", area: "Toa Payoh", rating: 4.95, tasksDone: 61, verified: true },
+  {
+    id: "v1",
+    name: "Aisha Rahman",
+    photo: "AR",
+    area: "Clementi",
+    rating: 4.9,
+    tasksDone: 47,
+    verified: true,
+  },
+  {
+    id: "v2",
+    name: "Daniel Lim",
+    photo: "DL",
+    area: "Bishan",
+    rating: 4.8,
+    tasksDone: 32,
+    verified: true,
+  },
+  {
+    id: "v3",
+    name: "Priya Krishnan",
+    photo: "PK",
+    area: "Toa Payoh",
+    rating: 4.95,
+    tasksDone: 61,
+    verified: true,
+  },
 ];
 
 export const taskCategories = [

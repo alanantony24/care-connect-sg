@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 
 export function Card({ children, className = "" }: { children: ReactNode; className?: string }) {
   return (
-    <div className={`rounded-2xl bg-card text-card-foreground border shadow-card p-4 ${className}`}>
+    <div className={`rounded-lg bg-card text-card-foreground border shadow-card p-4 ${className}`}>
       {children}
     </div>
   );
@@ -10,8 +10,10 @@ export function Card({ children, className = "" }: { children: ReactNode; classN
 
 export function SectionTitle({ title, action }: { title: string; action?: ReactNode }) {
   return (
-    <div className="flex items-center justify-between mb-3 mt-6 first:mt-0">
-      <h2 className="text-base font-semibold tracking-tight">{title}</h2>
+    <div className="flex items-center justify-between gap-3 mb-3 mt-7 first:mt-0">
+      <h2 className="text-sm font-semibold tracking-wide uppercase text-muted-foreground">
+        {title}
+      </h2>
       {action}
     </div>
   );
@@ -33,13 +35,23 @@ export function Pill({
   tone?: keyof typeof toneMap;
 }) {
   return (
-    <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-medium ${toneMap[tone]}`}>
+    <span
+      className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium ${toneMap[tone]}`}
+    >
       {children}
     </span>
   );
 }
 
-export function EmptyState({ icon, title, hint }: { icon: ReactNode; title: string; hint?: string }) {
+export function EmptyState({
+  icon,
+  title,
+  hint,
+}: {
+  icon: ReactNode;
+  title: string;
+  hint?: string;
+}) {
   return (
     <div className="text-center py-10">
       <div className="mx-auto size-14 rounded-2xl gradient-warm grid place-items-center mb-3">
@@ -67,9 +79,9 @@ export function StatCard({
   tone?: keyof typeof toneMap;
 }) {
   return (
-    <Card className="!p-3.5">
-      <p className="text-[11px] uppercase tracking-wide text-muted-foreground font-medium">{label}</p>
-      <p className="text-2xl font-bold mt-1">{value}</p>
+    <Card className="!p-4">
+      <p className="text-xs text-muted-foreground font-medium">{label}</p>
+      <p className="text-2xl font-semibold mt-1">{value}</p>
       {hint && (
         <span className="mt-2 inline-block">
           <Pill tone={tone}>{hint}</Pill>
