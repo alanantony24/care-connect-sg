@@ -161,6 +161,11 @@ export function RequestCard({ r }: { r: RequestRow & { requester?: { name: strin
             <span>·</span>
             <span>{r.time_needed}</span>
           </div>
+          {r.payment_amount != null && Number(r.payment_amount) > 0 && (
+            <div className="mt-2 inline-flex items-center gap-1 rounded-full bg-primary-soft text-primary px-2.5 py-1 text-xs font-semibold">
+              S${Number(r.payment_amount).toFixed(0)}
+            </div>
+          )}
         </div>
       </div>
     </Link>
