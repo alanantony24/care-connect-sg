@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/lib/session";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/requests/$id/review")({
+export const Route = createFileRoute("/requests/$id_/review")({
   beforeLoad: async () => {
     const { data } = await supabase.auth.getSession();
     if (!data.session) throw redirect({ to: "/login" });
@@ -29,7 +29,7 @@ const BADGES = [
 ];
 
 function ReviewPage() {
-  const { id } = useParams({ from: "/requests/$id/review" });
+  const { id } = Route.useParams();
   const { profile } = useSession();
   const nav = useNavigate();
   const [r, setR] = useState<Req | null>(null);

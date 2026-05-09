@@ -7,7 +7,7 @@ import { PinDisplay, PinKeypad } from "@/components/PinPad";
 import { toast } from "sonner";
 import { checkBadgesOnComplete } from "@/lib/badges";
 
-export const Route = createFileRoute("/requests/$id/end")({
+export const Route = createFileRoute("/requests/$id_/end")({
   beforeLoad: async () => {
     const { data } = await supabase.auth.getSession();
     if (!data.session) throw redirect({ to: "/login" });
@@ -16,7 +16,7 @@ export const Route = createFileRoute("/requests/$id/end")({
 });
 
 function EndPin() {
-  const { id } = useParams({ from: "/requests/$id/end" });
+  const { id } = Route.useParams();
   const { profile, refresh } = useSession();
   const nav = useNavigate();
   const [pin, setPin] = useState("");

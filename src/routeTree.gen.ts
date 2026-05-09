@@ -18,9 +18,9 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as RequestsNewRouteImport } from './routes/requests.new'
 import { Route as RequestsIdRouteImport } from './routes/requests.$id'
-import { Route as RequestsIdStartRouteImport } from './routes/requests.$id.start'
-import { Route as RequestsIdReviewRouteImport } from './routes/requests.$id.review'
-import { Route as RequestsIdEndRouteImport } from './routes/requests.$id.end'
+import { Route as RequestsIdStartRouteImport } from './routes/requests.$id_.start'
+import { Route as RequestsIdReviewRouteImport } from './routes/requests.$id_.review'
+import { Route as RequestsIdEndRouteImport } from './routes/requests.$id_.end'
 
 const VolunteerRoute = VolunteerRouteImport.update({
   id: '/volunteer',
@@ -68,19 +68,19 @@ const RequestsIdRoute = RequestsIdRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const RequestsIdStartRoute = RequestsIdStartRouteImport.update({
-  id: '/start',
-  path: '/start',
-  getParentRoute: () => RequestsIdRoute,
+  id: '/requests/$id_/start',
+  path: '/requests/$id/start',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const RequestsIdReviewRoute = RequestsIdReviewRouteImport.update({
-  id: '/review',
-  path: '/review',
-  getParentRoute: () => RequestsIdRoute,
+  id: '/requests/$id_/review',
+  path: '/requests/$id/review',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const RequestsIdEndRoute = RequestsIdEndRouteImport.update({
-  id: '/end',
-  path: '/end',
-  getParentRoute: () => RequestsIdRoute,
+  id: '/requests/$id_/end',
+  path: '/requests/$id/end',
+  getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -91,7 +91,7 @@ export interface FileRoutesByFullPath {
   '/profile': typeof ProfileRoute
   '/signup': typeof SignupRoute
   '/volunteer': typeof VolunteerRoute
-  '/requests/$id': typeof RequestsIdRouteWithChildren
+  '/requests/$id': typeof RequestsIdRoute
   '/requests/new': typeof RequestsNewRoute
   '/requests/$id/end': typeof RequestsIdEndRoute
   '/requests/$id/review': typeof RequestsIdReviewRoute
@@ -105,7 +105,7 @@ export interface FileRoutesByTo {
   '/profile': typeof ProfileRoute
   '/signup': typeof SignupRoute
   '/volunteer': typeof VolunteerRoute
-  '/requests/$id': typeof RequestsIdRouteWithChildren
+  '/requests/$id': typeof RequestsIdRoute
   '/requests/new': typeof RequestsNewRoute
   '/requests/$id/end': typeof RequestsIdEndRoute
   '/requests/$id/review': typeof RequestsIdReviewRoute
@@ -120,11 +120,11 @@ export interface FileRoutesById {
   '/profile': typeof ProfileRoute
   '/signup': typeof SignupRoute
   '/volunteer': typeof VolunteerRoute
-  '/requests/$id': typeof RequestsIdRouteWithChildren
+  '/requests/$id': typeof RequestsIdRoute
   '/requests/new': typeof RequestsNewRoute
-  '/requests/$id/end': typeof RequestsIdEndRoute
-  '/requests/$id/review': typeof RequestsIdReviewRoute
-  '/requests/$id/start': typeof RequestsIdStartRoute
+  '/requests/$id_/end': typeof RequestsIdEndRoute
+  '/requests/$id_/review': typeof RequestsIdReviewRoute
+  '/requests/$id_/start': typeof RequestsIdStartRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -166,9 +166,9 @@ export interface FileRouteTypes {
     | '/volunteer'
     | '/requests/$id'
     | '/requests/new'
-    | '/requests/$id/end'
-    | '/requests/$id/review'
-    | '/requests/$id/start'
+    | '/requests/$id_/end'
+    | '/requests/$id_/review'
+    | '/requests/$id_/start'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -179,8 +179,11 @@ export interface RootRouteChildren {
   ProfileRoute: typeof ProfileRoute
   SignupRoute: typeof SignupRoute
   VolunteerRoute: typeof VolunteerRoute
-  RequestsIdRoute: typeof RequestsIdRouteWithChildren
+  RequestsIdRoute: typeof RequestsIdRoute
   RequestsNewRoute: typeof RequestsNewRoute
+  RequestsIdEndRoute: typeof RequestsIdEndRoute
+  RequestsIdReviewRoute: typeof RequestsIdReviewRoute
+  RequestsIdStartRoute: typeof RequestsIdStartRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -248,45 +251,29 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RequestsIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/requests/$id/start': {
-      id: '/requests/$id/start'
-      path: '/start'
+    '/requests/$id_/start': {
+      id: '/requests/$id_/start'
+      path: '/requests/$id/start'
       fullPath: '/requests/$id/start'
       preLoaderRoute: typeof RequestsIdStartRouteImport
-      parentRoute: typeof RequestsIdRoute
+      parentRoute: typeof rootRouteImport
     }
-    '/requests/$id/review': {
-      id: '/requests/$id/review'
-      path: '/review'
+    '/requests/$id_/review': {
+      id: '/requests/$id_/review'
+      path: '/requests/$id/review'
       fullPath: '/requests/$id/review'
       preLoaderRoute: typeof RequestsIdReviewRouteImport
-      parentRoute: typeof RequestsIdRoute
+      parentRoute: typeof rootRouteImport
     }
-    '/requests/$id/end': {
-      id: '/requests/$id/end'
-      path: '/end'
+    '/requests/$id_/end': {
+      id: '/requests/$id_/end'
+      path: '/requests/$id/end'
       fullPath: '/requests/$id/end'
       preLoaderRoute: typeof RequestsIdEndRouteImport
-      parentRoute: typeof RequestsIdRoute
+      parentRoute: typeof rootRouteImport
     }
   }
 }
-
-interface RequestsIdRouteChildren {
-  RequestsIdEndRoute: typeof RequestsIdEndRoute
-  RequestsIdReviewRoute: typeof RequestsIdReviewRoute
-  RequestsIdStartRoute: typeof RequestsIdStartRoute
-}
-
-const RequestsIdRouteChildren: RequestsIdRouteChildren = {
-  RequestsIdEndRoute: RequestsIdEndRoute,
-  RequestsIdReviewRoute: RequestsIdReviewRoute,
-  RequestsIdStartRoute: RequestsIdStartRoute,
-}
-
-const RequestsIdRouteWithChildren = RequestsIdRoute._addFileChildren(
-  RequestsIdRouteChildren,
-)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
@@ -296,9 +283,22 @@ const rootRouteChildren: RootRouteChildren = {
   ProfileRoute: ProfileRoute,
   SignupRoute: SignupRoute,
   VolunteerRoute: VolunteerRoute,
-  RequestsIdRoute: RequestsIdRouteWithChildren,
+  RequestsIdRoute: RequestsIdRoute,
   RequestsNewRoute: RequestsNewRoute,
+  RequestsIdEndRoute: RequestsIdEndRoute,
+  RequestsIdReviewRoute: RequestsIdReviewRoute,
+  RequestsIdStartRoute: RequestsIdStartRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

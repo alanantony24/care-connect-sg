@@ -16,7 +16,7 @@ export const Route = createFileRoute("/requests/$id_/start")({
 });
 
 function StartPin() {
-  const { id } = useParams({ from: "/requests/$id/start" });
+  const { id } = Route.useParams();
   const { profile, refresh } = useSession();
   const nav = useNavigate();
   const [pin, setPin] = useState("");
