@@ -18,14 +18,14 @@ const caregiverNav: NavItem[] = [
 
 const volunteerNav: NavItem[] = [
   { to: "/volunteer", label: "Browse", icon: Home },
-  { to: "/volunteer/tasks", label: "My Tasks", icon: Calendar },
-  { to: "/notifications", label: "Alerts", icon: Bell },
+  { to: "/requests", label: "Requests", icon: Calendar },
+  { to: "/senior", label: "Senior", icon: Heart },
 ];
 
 const adminNav: NavItem[] = [
   { to: "/admin", label: "Overview", icon: Shield },
-  { to: "/admin/volunteers", label: "Volunteers", icon: Users },
-  { to: "/admin/requests", label: "Requests", icon: Calendar },
+  { to: "/requests", label: "Requests", icon: Calendar },
+  { to: "/senior", label: "Seniors", icon: Users },
 ];
 
 export function AppShell({ children }: { children: ReactNode }) {
