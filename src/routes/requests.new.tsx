@@ -24,6 +24,7 @@ function NewRequest() {
   const [time, setTime] = useState("");
   const [location, setLocation] = useState("");
   const [notes, setNotes] = useState("");
+  const [payment, setPayment] = useState("10");
   const [busy, setBusy] = useState(false);
 
   const onSubmit = async (e: React.FormEvent) => {
@@ -37,6 +38,7 @@ function NewRequest() {
       time_needed: time,
       location,
       notes: notes || null,
+      payment_amount: Number(payment) || 0,
       requester_id: profile.id,
     });
     setBusy(false);
