@@ -39,6 +39,7 @@ interface RequestRow {
   claimed_by: string | null;
   start_pin: string | null;
   end_pin: string | null;
+  payment_amount: number | null;
   requester: { name: string; avatar_url: string | null } | null;
   claimer: { name: string; avatar_url: string | null } | null;
 }
