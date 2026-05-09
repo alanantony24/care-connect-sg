@@ -11,14 +11,12 @@ export const BADGE_DEFS = [
 export type BadgeType = (typeof BADGE_DEFS)[number]["type"];
 
 async function award(userId: string, badge: BadgeType) {
-  // unique(user_id, badge_type) makes this idempotent
-  await supabase
-    .from("badges")
-    .insert({ user_id: userId, badge_type: badge })
-    .select()
-    .single()
-    .then(() => {})
-    .catch(() => {});
+  // unique(user_id, badge_type) makes this idempotent — duplicate inserts will just error silently
+  try {
+    await supabase.from("badges").insert({ user_id: userId, badge_type: badge });
+  } catch {
+    // ignore
+  }
 }
 
 export async function checkBadgesOnClaim(userId: string, postedAt: string) {
