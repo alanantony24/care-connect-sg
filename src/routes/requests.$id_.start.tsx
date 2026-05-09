@@ -39,15 +39,17 @@ function StartPin() {
       return;
     }
 
-    const updates: Record<string, unknown> = {
-      status: "in_progress",
-      started_at: new Date().toISOString(),
-    };
-    if (req.status === "open" && !req.claimed_by) {
-      updates.claimed_by = profile.id;
-    }
-
-    const { error } = await supabase.from("requests").update(updates).eq("id", id);
+    const startedAt = new Date().toISOString();
+    const { error } =
+      req.status === "open" && !req.claimed_by
+        ? await supabase
+            .from("requests")
+            .update({ status: "in_progress", started_at: startedAt, claimed_by: profile.id })
+            .eq("id", id)
+        : await supabase
+            .from("requests")
+            .update({ status: "in_progress", started_at: startedAt })
+            .eq("id", id);
     if (error) {
       setBusy(false);
       toast.error(error.message);
