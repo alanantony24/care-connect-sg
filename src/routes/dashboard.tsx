@@ -24,6 +24,7 @@ interface RequestRow {
   time_needed: string;
   status: string;
   created_at: string;
+  started_at?: string | null;
   claimed_by: string | null;
   payment_amount?: number | null;
   claimer?: { name: string } | null;
@@ -129,10 +130,11 @@ function Dashboard() {
 export function RequestCard({ r }: { r: RequestRow & { requester?: { name: string } | null } }) {
   const meta = taskMeta(r.task_type);
   const Icon = meta.icon;
+  const displayStatus = r.status === "claimed" && r.started_at ? "in progress" : r.status;
   const tone =
     r.status === "open"
       ? "bg-primary-soft text-primary-soft-foreground"
-      : r.status === "claimed"
+      : displayStatus === "in progress" || r.status === "claimed"
         ? "bg-warning/20 text-warning-foreground"
         : "bg-success/15 text-success";
   return (
@@ -149,7 +151,7 @@ export function RequestCard({ r }: { r: RequestRow & { requester?: { name: strin
           <div className="flex items-start justify-between gap-2">
             <p className="font-semibold leading-tight">{r.title}</p>
             <span className={`text-[10px] font-semibold uppercase rounded-full px-2 py-1 ${tone}`}>
-              {r.status}
+              {displayStatus}
             </span>
           </div>
           <p className="text-xs text-muted-foreground mt-1 capitalize">{meta.label}</p>

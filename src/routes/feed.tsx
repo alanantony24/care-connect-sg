@@ -66,7 +66,7 @@ function Feed() {
   const list = rows ?? [];
   const buckets: Record<Tab, RequestRow[]> = {
     pending: list.filter((r) => r.status === "open"),
-    accepted: list.filter((r) => r.status === "claimed" || r.status === "in_progress"),
+    accepted: list.filter((r) => r.status === "claimed"),
     completed: list.filter((r) => r.status === "completed"),
   };
   const visible = buckets[tab];

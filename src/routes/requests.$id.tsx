@@ -39,6 +39,7 @@ interface RequestRow {
   claimed_by: string | null;
   start_pin: string | null;
   end_pin: string | null;
+  started_at: string | null;
   payment_amount: number | null;
   requester: { name: string; avatar_url: string | null } | null;
   claimer: { name: string; avatar_url: string | null } | null;
@@ -76,6 +77,7 @@ function TaskDetail() {
   const isVolunteer = profile.role === "volunteer";
   const isMine = profile.id === r.requester_id;
   const iClaimed = profile.id === r.claimed_by;
+  const isStarted = r.status === "claimed" && Boolean(r.started_at);
   const ageHours = (Date.now() - new Date(r.created_at).getTime()) / 36e5;
   const urgent = r.status === "open" && ageHours < 12;
 
@@ -102,7 +104,7 @@ function TaskDetail() {
             {meta.label}
           </span>
           <span className="rounded-full bg-muted text-muted-foreground text-xs font-semibold px-3 py-1.5 capitalize">
-            {r.status.replace("_", " ")}
+            {isStarted ? "in progress" : r.status.replace("_", " ")}
           </span>
         </div>
 
@@ -142,7 +144,7 @@ function TaskDetail() {
           </span>
           <div className="flex-1 min-w-0">
             <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
-              {r.status === "in_progress"
+              {isStarted
                 ? "Payment on hold"
                 : r.status === "completed"
                   ? "Payment released"
@@ -153,7 +155,7 @@ function TaskDetail() {
             </p>
           </div>
           <span className="text-[11px] text-muted-foreground max-w-[40%] text-right leading-tight">
-            {r.status === "in_progress"
+            {isStarted
               ? "Released after end PIN"
               : r.status === "completed"
                 ? "Sent to volunteer"
@@ -218,7 +220,7 @@ function TaskDetail() {
             </button>
           )}
 
-          {isVolunteer && r.status === "claimed" && iClaimed && (
+          {isVolunteer && r.status === "claimed" && iClaimed && !isStarted && (
             <button
               onClick={() => nav({ to: "/requests/$id/start", params: { id } })}
               className="w-full rounded-full bg-primary text-primary-foreground py-4 font-semibold shadow-elevated flex items-center justify-center gap-2"
@@ -227,7 +229,7 @@ function TaskDetail() {
             </button>
           )}
 
-          {r.status === "in_progress" && iClaimed && (
+          {isStarted && iClaimed && (
             <button
               onClick={() => nav({ to: "/requests/$id/end", params: { id } })}
               className="w-full rounded-full bg-primary text-primary-foreground py-4 font-semibold shadow-elevated flex items-center justify-center gap-2"

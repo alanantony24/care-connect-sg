@@ -1,4 +1,4 @@
--- Add pin codes and in_progress status support to requests
+-- Add pin codes and task timing support to requests
 ALTER TABLE public.requests 
   ADD COLUMN IF NOT EXISTS start_pin TEXT,
   ADD COLUMN IF NOT EXISTS end_pin TEXT,

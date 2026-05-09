@@ -44,11 +44,11 @@ function StartPin() {
       req.status === "open" && !req.claimed_by
         ? await supabase
             .from("requests")
-            .update({ status: "in_progress", started_at: startedAt, claimed_by: profile.id })
+            .update({ status: "claimed", started_at: startedAt, claimed_by: profile.id })
             .eq("id", id)
         : await supabase
             .from("requests")
-            .update({ status: "in_progress", started_at: startedAt })
+            .update({ status: "claimed", started_at: startedAt })
             .eq("id", id);
     if (error) {
       setBusy(false);
@@ -69,7 +69,11 @@ function StartPin() {
   return (
     <div className="min-h-screen bg-muted/30">
       <header className="container-app pt-5 pb-3 flex items-center justify-between border-b">
-        <Link to="/requests/$id" params={{ id }} className="size-10 grid place-items-center rounded-full">
+        <Link
+          to="/requests/$id"
+          params={{ id }}
+          className="size-10 grid place-items-center rounded-full"
+        >
           <ArrowLeft className="size-5" />
         </Link>
         <p className="text-primary font-bold text-lg">CareKampung</p>
