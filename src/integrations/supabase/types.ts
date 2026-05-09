@@ -83,6 +83,7 @@ export type Database = {
           id: string
           location: string
           notes: string | null
+          payment_amount: number
           requester_id: string
           start_pin: string | null
           started_at: string | null
@@ -100,6 +101,7 @@ export type Database = {
           id?: string
           location: string
           notes?: string | null
+          payment_amount?: number
           requester_id: string
           start_pin?: string | null
           started_at?: string | null
@@ -117,6 +119,7 @@ export type Database = {
           id?: string
           location?: string
           notes?: string | null
+          payment_amount?: number
           requester_id?: string
           start_pin?: string | null
           started_at?: string | null
