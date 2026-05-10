@@ -149,3 +149,33 @@ export function platformFeeFor(amount: number) {
 export function volunteerPayoutFor(amount: number) {
   return Number((clampTaskPayment(amount) - platformFeeFor(amount)).toFixed(2));
 }
+
+export type Priority = "low" | "normal" | "high";
+
+export const PRIORITY_META: Record<
+  Priority,
+  { label: string; dot: string; chip: string; ring: string; hint: string }
+> = {
+  low: {
+    label: "Low",
+    hint: "Flexible",
+    dot: "bg-emerald-500",
+    chip: "bg-emerald-500/15 text-emerald-700 border-emerald-500/30",
+    ring: "border-emerald-500 bg-emerald-500/10 text-emerald-700",
+  },
+  normal: {
+    label: "Normal",
+    hint: "Standard",
+    dot: "bg-amber-500",
+    chip: "bg-amber-500/15 text-amber-700 border-amber-500/30",
+    ring: "border-amber-500 bg-amber-500/10 text-amber-700",
+  },
+  high: {
+    label: "High",
+    hint: "Urgent",
+    dot: "bg-red-500",
+    chip: "bg-red-500/15 text-red-600 border-red-500/30",
+    ring: "border-red-500 bg-red-500/10 text-red-600",
+  },
+};
+
