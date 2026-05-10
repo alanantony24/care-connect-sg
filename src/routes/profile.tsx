@@ -62,6 +62,16 @@ function ProfilePage() {
   const [badges, setBadges] = useState<{ badge_type: string }[] | null>(null);
   const [reviews, setReviews] = useState<Review[] | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [info, setInfo] = useState<{
+    age: number | null;
+    languages: string[] | null;
+    experience: string | null;
+    preferred_area: string | null;
+    motivation: string | null;
+    emergency_contact: string | null;
+    notes: string | null;
+    cert_status: string | null;
+  } | null>(null);
 
   useEffect(() => {
     if (!profile) return;
@@ -71,6 +81,14 @@ function ProfilePage() {
         .select("badge_type")
         .eq("user_id", profile.id)
         .then(({ data }) => setBadges(data ?? []));
+      supabase
+        .from("profiles")
+        .select(
+          "age,languages,experience,preferred_area,motivation,emergency_contact,notes,cert_status",
+        )
+        .eq("id", profile.id)
+        .maybeSingle()
+        .then(({ data }) => setInfo(data as typeof info));
     }
     supabase
       .from("reviews")
@@ -80,6 +98,7 @@ function ProfilePage() {
       .limit(5)
       .then(({ data }) => setReviews((data ?? []) as unknown as Review[]));
   }, [profile]);
+
 
   if (!profile) {
     return (
