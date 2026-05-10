@@ -178,27 +178,36 @@ function ChatThread() {
         <div ref={endRef} />
       </main>
 
-      <form
-        onSubmit={send}
-        className="sticky bottom-0 bg-background/95 backdrop-blur border-t"
-      >
-        <div className="container-app py-3 flex items-center gap-2">
-          <input
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            placeholder="Type a message…"
-            className="flex-1 rounded-full bg-card border px-4 py-3 text-sm outline-none focus:border-primary"
-          />
-          <button
-            type="submit"
-            disabled={!text.trim() || sending}
-            className="size-12 grid place-items-center rounded-full bg-primary text-primary-foreground shadow-elevated disabled:opacity-50"
-          >
-            {sending ? <Loader2 className="size-5 animate-spin" /> : <Send className="size-5" />}
-          </button>
+      {hasActiveTask === false ? (
+        <div className="sticky bottom-0 bg-muted/40 backdrop-blur border-t">
+          <div className="container-app py-4 text-center text-sm text-muted-foreground">
+            Chat closed — this task has been completed.
+          </div>
+          <div className="h-[env(safe-area-inset-bottom)]" />
         </div>
-        <div className="h-[env(safe-area-inset-bottom)]" />
-      </form>
+      ) : (
+        <form
+          onSubmit={send}
+          className="sticky bottom-0 bg-background/95 backdrop-blur border-t"
+        >
+          <div className="container-app py-3 flex items-center gap-2">
+            <input
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              placeholder="Type a message…"
+              className="flex-1 rounded-full bg-card border px-4 py-3 text-sm outline-none focus:border-primary"
+            />
+            <button
+              type="submit"
+              disabled={!text.trim() || sending}
+              className="size-12 grid place-items-center rounded-full bg-primary text-primary-foreground shadow-elevated disabled:opacity-50"
+            >
+              {sending ? <Loader2 className="size-5 animate-spin" /> : <Send className="size-5" />}
+            </button>
+          </div>
+          <div className="h-[env(safe-area-inset-bottom)]" />
+        </form>
+      )}
     </div>
   );
 }
