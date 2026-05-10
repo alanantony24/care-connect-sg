@@ -1,9 +1,10 @@
 import { createFileRoute, Link, redirect, useNavigate, useParams } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { AppShell } from "@/components/AppShell";
+import { FeeReceipt } from "@/components/FeeReceipt";
 import { useSession } from "@/lib/session";
 import { supabase } from "@/integrations/supabase/client";
-import { taskMeta } from "@/lib/tasks";
+import { platformFeeFor, taskMeta, volunteerPayoutFor } from "@/lib/tasks";
 import { toast } from "sonner";
 import {
   ArrowLeft,
@@ -118,6 +119,9 @@ function TaskDetail() {
   const ageHours = (Date.now() - new Date(r.created_at).getTime()) / 36e5;
   const urgent = r.status === "open" && ageHours < 12;
   const pendingApps = apps.filter((a) => a.status === "pending");
+  const grossAmount = Number(r.payment_amount ?? 0);
+  const platformFee = platformFeeFor(grossAmount);
+  const volunteerPayout = volunteerPayoutFor(grossAmount);
 
   const apply = async () => {
     setBusy(true);
@@ -126,7 +130,7 @@ function TaskDetail() {
       .insert({ request_id: id, volunteer_id: profile.id, status: "pending" });
     setBusy(false);
     if (error) return toast.error(error.message);
-    toast.success("Application sent!");
+    toast.success(`Application sent. Estimated payout after fee: S$${volunteerPayout.toFixed(2)}.`);
     loadApps();
   };
 
@@ -249,7 +253,7 @@ function TaskDetail() {
                   : "Payment offered"}
             </p>
             <p className="text-2xl font-bold text-primary">
-              S${Number(r.payment_amount ?? 0).toFixed(2)}
+              S${grossAmount.toFixed(2)}
             </p>
           </div>
           <span className="text-[11px] text-muted-foreground max-w-[40%] text-right leading-tight">
@@ -392,13 +396,25 @@ function TaskDetail() {
         <div className="mt-8 space-y-2">
           {/* Volunteer: open task — apply or pending */}
           {isVolunteer && r.status === "open" && !myApp && (
-            <button
-              disabled={busy}
-              onClick={apply}
-              className="w-full rounded-full bg-primary text-primary-foreground py-4 font-semibold shadow-elevated flex items-center justify-center gap-2 disabled:opacity-60"
-            >
-              <HandHeart className="size-5" /> Apply for this task
-            </button>
+            <>
+              <div className="rounded-2xl border border-primary/20 bg-primary-soft/45 p-4">
+                <p className="text-sm font-semibold text-primary">Before you apply</p>
+                <FeeReceipt
+                  amount={grossAmount}
+                  fee={platformFee}
+                  payout={volunteerPayout}
+                  amountLabel="Task pays"
+                  className="mt-3 border-primary/15 bg-card/70"
+                />
+              </div>
+              <button
+                disabled={busy}
+                onClick={apply}
+                className="w-full rounded-full bg-primary text-primary-foreground py-4 font-semibold shadow-elevated flex items-center justify-center gap-2 disabled:opacity-60"
+              >
+                <HandHeart className="size-5" /> Apply for this task
+              </button>
+            </>
           )}
 
           {isVolunteer && r.status === "open" && myApp && (

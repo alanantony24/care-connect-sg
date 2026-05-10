@@ -3,7 +3,16 @@ import { useRef, useState } from "react";
 import { ArrowLeft, Info, Loader2, Send } from "lucide-react";
 import { useSession } from "@/lib/session";
 import { supabase } from "@/integrations/supabase/client";
-import { TASK_TYPES, paymentGuidance, type TaskType } from "@/lib/tasks";
+import { FeeReceipt } from "@/components/FeeReceipt";
+import {
+  MAX_TASK_PAYMENT,
+  TASK_TYPES,
+  clampTaskPayment,
+  paymentGuidance,
+  platformFeeFor,
+  volunteerPayoutFor,
+  type TaskType,
+} from "@/lib/tasks";
 import { toast } from "sonner";
 import { Style } from "./login";
 
@@ -29,6 +38,9 @@ function NewRequest() {
   const [busy, setBusy] = useState(false);
   const suggestedPayment = paymentGuidance(taskType);
   const paymentInputRef = useRef<HTMLInputElement>(null);
+  const paymentValue = clampTaskPayment(Number(payment) || 0);
+  const platformFee = platformFeeFor(paymentValue);
+  const volunteerPayout = volunteerPayoutFor(paymentValue);
 
   const useSuggestedPayment = () => {
     const amount = String(suggestedPayment.amount);
@@ -42,6 +54,7 @@ function NewRequest() {
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!profile) return;
+    const finalPayment = clampTaskPayment(Number(payment) || 0);
     setBusy(true);
     const { error } = await supabase.from("requests").insert({
       title,
@@ -50,7 +63,7 @@ function NewRequest() {
       time_needed: time,
       location,
       notes: notes || null,
-      payment_amount: Number(payment) || 0,
+      payment_amount: finalPayment,
       requester_id: profile.id,
     });
     setBusy(false);
@@ -172,6 +185,9 @@ function NewRequest() {
                 <p className="mt-1 text-xs leading-5 text-muted-foreground">
                   {suggestedPayment.reason}
                 </p>
+                <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                  We cap all tasks at S${MAX_TASK_PAYMENT} during this pilot.
+                </p>
                 <button
                   type="button"
                   onClick={useSuggestedPayment}
@@ -191,17 +207,26 @@ function NewRequest() {
               required
               type="number"
               min={0}
+              max={MAX_TASK_PAYMENT}
               step={1}
               value={payment}
-              onChange={(e) => setPayment(e.target.value)}
+              onChange={(e) => setPayment(String(clampTaskPayment(Number(e.target.value) || 0)))}
               className="kinput kinput-money"
               placeholder="10"
             />
           </div>
-          <span className="block text-xs text-muted-foreground mt-1.5">
-            Held securely while the task is in progress and released to the volunteer when they
-            enter your end PIN.
-          </span>
+          <div className="mt-2 space-y-1 text-xs text-muted-foreground">
+            <FeeReceipt
+              amount={paymentValue}
+              fee={platformFee}
+              payout={volunteerPayout}
+              amountLabel="You set"
+            />
+            <p>
+              Held securely while the task is in progress and released when the volunteer enters
+              your end PIN.
+            </p>
+          </div>
         </Field>
 
         <button

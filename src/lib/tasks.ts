@@ -23,6 +23,9 @@ export function taskMeta(t: string) {
   return TASK_TYPES.find((x) => x.value === t) ?? TASK_TYPES[0];
 }
 
+export const MAX_TASK_PAYMENT = 15;
+export const PLATFORM_FEE_RATE = 0.05;
+
 export const TASK_PAYMENT_GUIDANCE: Record<
   TaskType,
   { amount: number; range: string; reason: string }
@@ -33,32 +36,45 @@ export const TASK_PAYMENT_GUIDANCE: Record<
     reason: "A short grocery run usually takes under an hour, with some carrying involved.",
   },
   transport: {
-    amount: 25,
-    range: "S$20-S$30",
-    reason: "Appointment escort takes more coordination and waiting time than a simple errand.",
+    amount: 15,
+    range: "S$13-S$15",
+    reason:
+      "Transport and appointment escort need more waiting time and coordination, so they sit at the top of the range.",
   },
   companionship: {
-    amount: 10,
-    range: "S$8-S$12",
+    amount: 9,
+    range: "S$8-S$10",
     reason: "Companionship is lower physical effort but still asks for focused time and care.",
   },
   household: {
-    amount: 15,
-    range: "S$12-S$18",
+    amount: 11,
+    range: "S$10-S$12",
     reason: "Light household support may involve standing, carrying, or simple cleanup.",
   },
   walk: {
-    amount: 12,
-    range: "S$10-S$15",
+    amount: 8,
+    range: "S$6-S$9",
     reason: "A supervised walk needs patience, attention, and safe return home.",
   },
   errand: {
     amount: 10,
-    range: "S$8-S$12",
+    range: "S$8-S$11",
     reason: "Simple errands are usually quick and low-risk when instructions are clear.",
   },
 };
 
 export function paymentGuidance(t: TaskType) {
   return TASK_PAYMENT_GUIDANCE[t];
+}
+
+export function clampTaskPayment(amount: number) {
+  return Math.min(Math.max(amount, 0), MAX_TASK_PAYMENT);
+}
+
+export function platformFeeFor(amount: number) {
+  return Number((clampTaskPayment(amount) * PLATFORM_FEE_RATE).toFixed(2));
+}
+
+export function volunteerPayoutFor(amount: number) {
+  return Number((clampTaskPayment(amount) - platformFeeFor(amount)).toFixed(2));
 }

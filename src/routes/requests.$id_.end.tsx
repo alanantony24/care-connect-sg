@@ -1,11 +1,13 @@
 import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { ArrowLeft, Lock, Loader2, CheckCircle2, Wallet, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { FeeReceipt } from "@/components/FeeReceipt";
 import { useSession } from "@/lib/session";
 import { PinDisplay, PinKeypad } from "@/components/PinPad";
 import { toast } from "sonner";
 import { checkBadgesOnComplete } from "@/lib/badges";
+import { platformFeeFor, volunteerPayoutFor } from "@/lib/tasks";
 
 export const Route = createFileRoute("/requests/$id_/end")({
   beforeLoad: async () => {
@@ -23,7 +25,7 @@ function EndPin() {
   const [pin, setPin] = useState("");
   const [busy, setBusy] = useState(false);
   const [showPayout, setShowPayout] = useState(false);
-  const [payout, setPayout] = useState(0);
+  const [grossAmount, setGrossAmount] = useState(0);
   const [requesterName, setRequesterName] = useState("the caregiver");
 
   const verify = async () => {
@@ -32,7 +34,9 @@ function EndPin() {
 
     const { data: req } = await supabase
       .from("requests")
-      .select("end_pin, claimed_by, payment_amount, requester:profiles!requests_requester_id_fkey(name)")
+      .select(
+        "end_pin, claimed_by, payment_amount, requester:profiles!requests_requester_id_fkey(name)",
+      )
       .eq("id", id)
       .maybeSingle();
 
@@ -59,8 +63,8 @@ function EndPin() {
     if (helperId === profile.id) await checkBadgesOnComplete(profile.id, next);
 
     await refresh();
-    setPayout(Number(req.payment_amount ?? 0));
-    setRequesterName((req as any).requester?.name ?? "the caregiver");
+    setGrossAmount(Number(req.payment_amount ?? 0));
+    setRequesterName((req as { requester?: { name?: string | null } }).requester?.name ?? "the caregiver");
     setBusy(false);
 
     if (profile.role === "volunteer") {
@@ -76,10 +80,17 @@ function EndPin() {
     nav({ to: "/requests/$id/review", params: { id } });
   };
 
+  const platformFee = platformFeeFor(grossAmount);
+  const volunteerPayout = volunteerPayoutFor(grossAmount);
+
   return (
     <div className="min-h-screen bg-muted/30">
       <header className="container-app pt-5 pb-3 flex items-center justify-between border-b">
-        <Link to="/requests/$id" params={{ id }} className="size-10 grid place-items-center rounded-full">
+        <Link
+          to="/requests/$id"
+          params={{ id }}
+          className="size-10 grid place-items-center rounded-full"
+        >
           <ArrowLeft className="size-5" />
         </Link>
         <p className="text-primary font-bold text-lg">CareKampung</p>
@@ -108,7 +119,11 @@ function EndPin() {
             disabled={pin.length !== 4 || busy}
             className="mt-7 w-full rounded-full bg-primary text-primary-foreground py-4 font-semibold flex items-center justify-center gap-2 shadow-elevated disabled:opacity-50"
           >
-            {busy ? <Loader2 className="size-4 animate-spin" /> : <CheckCircle2 className="size-5" />}
+            {busy ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <CheckCircle2 className="size-5" />
+            )}
             Verify & Complete Task
           </button>
           <button className="mt-4 w-full text-primary text-sm font-semibold">
@@ -137,10 +152,17 @@ function EndPin() {
             </p>
             <div className="mt-5 rounded-2xl bg-primary-soft text-primary py-5">
               <p className="text-xs uppercase tracking-wider font-semibold">You received</p>
-              <p className="text-4xl font-bold mt-1">S${payout.toFixed(2)}</p>
+              <p className="text-4xl font-bold mt-1">S${volunteerPayout.toFixed(2)}</p>
             </div>
+            <FeeReceipt
+              amount={grossAmount}
+              fee={platformFee}
+              payout={volunteerPayout}
+              payoutLabel="Final volunteer payout"
+              className="mt-4 text-left"
+            />
             <p className="mt-4 text-xs text-muted-foreground">
-              Funds will appear in your linked account within 1–2 business days.
+              Funds will appear in your linked account within 1-2 business days.
             </p>
             <button
               onClick={closePayout}
