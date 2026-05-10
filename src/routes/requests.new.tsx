@@ -251,6 +251,8 @@ function NewRequest() {
           </div>
         </div>
 
+        <CareNotesAssistant existingNotes={notes} onUseNotes={setNotes} />
+
         <Field label="Notes for volunteers">
           <textarea
             rows={4}
