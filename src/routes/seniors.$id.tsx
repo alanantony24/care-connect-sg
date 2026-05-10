@@ -5,6 +5,7 @@ import { getSenior } from "@/lib/seniors";
 
 export const Route = createFileRoute("/seniors/$id")({
   beforeLoad: async () => {
+    if (typeof window === "undefined") return;
     const { data } = await supabase.auth.getSession();
     if (!data.session) throw redirect({ to: "/login" });
   },

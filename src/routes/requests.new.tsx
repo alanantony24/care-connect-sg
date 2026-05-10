@@ -9,6 +9,7 @@ import { Style } from "./login";
 
 export const Route = createFileRoute("/requests/new")({
   beforeLoad: async () => {
+    if (typeof window === "undefined") return;
     const { data } = await supabase.auth.getSession();
     if (!data.session) throw redirect({ to: "/login" });
   },

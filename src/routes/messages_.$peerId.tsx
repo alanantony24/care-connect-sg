@@ -6,6 +6,7 @@ import { useSession } from "@/lib/session";
 
 export const Route = createFileRoute("/messages_/$peerId")({
   beforeLoad: async () => {
+    if (typeof window === "undefined") return;
     const { data } = await supabase.auth.getSession();
     if (!data.session) throw redirect({ to: "/login" });
   },

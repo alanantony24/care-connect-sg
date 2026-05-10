@@ -8,6 +8,7 @@ import { RequestCard, CardSkeleton, EmptyHint } from "./dashboard";
 
 export const Route = createFileRoute("/feed")({
   beforeLoad: async () => {
+    if (typeof window === "undefined") return;
     const { data } = await supabase.auth.getSession();
     if (!data.session) throw redirect({ to: "/login" });
   },
@@ -58,10 +59,7 @@ function Feed() {
         )
         .order("created_at", { ascending: false })
         .limit(100);
-      const filtered =
-        profile.role === "caregiver"
-          ? q.eq("requester_id", profile.id)
-          : q;
+      const filtered = profile.role === "caregiver" ? q.eq("requester_id", profile.id) : q;
       const { data } = await filtered;
       setRows((data ?? []) as RequestRow[]);
     };
@@ -81,8 +79,12 @@ function Feed() {
 
     const channel = supabase
       .channel(`feed-${profile.id}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "requests" }, () => loadRequests())
-      .on("postgres_changes", { event: "*", schema: "public", table: "applications" }, () => loadApps())
+      .on("postgres_changes", { event: "*", schema: "public", table: "requests" }, () =>
+        loadRequests(),
+      )
+      .on("postgres_changes", { event: "*", schema: "public", table: "applications" }, () =>
+        loadApps(),
+      )
       .subscribe();
     return () => {
       supabase.removeChannel(channel);
@@ -105,12 +107,10 @@ function Feed() {
   let visible: RequestRow[] = [];
   if (profile.role === "caregiver") {
     if (tab === "pending") visible = list.filter((r) => r.status === "open");
-    else if (tab === "confirmed")
-      visible = list.filter((r) => r.status === "claimed");
+    else if (tab === "confirmed") visible = list.filter((r) => r.status === "claimed");
     else if (tab === "completed") visible = list.filter((r) => r.status === "completed");
   } else {
-    if (tab === "all")
-      visible = list.filter((r) => r.status === "open" && !appliedIds.has(r.id));
+    if (tab === "all") visible = list.filter((r) => r.status === "open" && !appliedIds.has(r.id));
     else if (tab === "applied")
       visible = list.filter((r) => r.status === "open" && appliedIds.has(r.id));
     else if (tab === "confirmed")

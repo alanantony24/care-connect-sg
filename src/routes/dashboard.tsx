@@ -11,6 +11,7 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/dashboard")({
   beforeLoad: async () => {
+    if (typeof window === "undefined") return;
     const { data } = await supabase.auth.getSession();
     if (!data.session) throw redirect({ to: "/login" });
   },
@@ -83,9 +84,7 @@ function Dashboard() {
   const upcomingToday = list.filter(
     (r) => r !== inProgress && r.status !== "completed" && isToday(r.date_needed),
   );
-  const open = list.filter(
-    (r) => r.status === "open" && !upcomingToday.includes(r),
-  );
+  const open = list.filter((r) => r.status === "open" && !upcomingToday.includes(r));
 
   return (
     <AppShell>
@@ -226,7 +225,9 @@ export function RequestCard({ r }: { r: RequestRow & { requester?: { name: strin
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
             <p className="font-semibold leading-tight">{r.title}</p>
-            <span className={`text-[10px] font-semibold uppercase rounded-full px-2 py-1 whitespace-nowrap ${tone}`}>
+            <span
+              className={`text-[10px] font-semibold uppercase rounded-full px-2 py-1 whitespace-nowrap ${tone}`}
+            >
               {displayStatus}
             </span>
           </div>

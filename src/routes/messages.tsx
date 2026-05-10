@@ -7,6 +7,7 @@ import { useSession } from "@/lib/session";
 
 export const Route = createFileRoute("/messages")({
   beforeLoad: async () => {
+    if (typeof window === "undefined") return;
     const { data } = await supabase.auth.getSession();
     if (!data.session) throw redirect({ to: "/login" });
   },
@@ -77,11 +78,7 @@ function MessagesList() {
     load();
     const channel = supabase
       .channel(`msgs-list-${profile.id}`)
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "messages" },
-        () => load(),
-      )
+      .on("postgres_changes", { event: "*", schema: "public", table: "messages" }, () => load())
       .subscribe();
     return () => {
       supabase.removeChannel(channel);
@@ -126,7 +123,8 @@ function MessagesList() {
               </div>
               <p className="mt-4 font-semibold">No conversations yet</p>
               <p className="text-sm text-muted-foreground mt-1 max-w-xs mx-auto">
-                Open a task and tap Message to start chatting with a {profile?.role === "volunteer" ? "caregiver" : "volunteer"}.
+                Open a task and tap Message to start chatting with a{" "}
+                {profile?.role === "volunteer" ? "caregiver" : "volunteer"}.
               </p>
             </div>
           ) : (

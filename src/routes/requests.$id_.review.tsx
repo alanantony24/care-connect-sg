@@ -7,6 +7,7 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/requests/$id_/review")({
   beforeLoad: async () => {
+    if (typeof window === "undefined") return;
     const { data } = await supabase.auth.getSession();
     if (!data.session) throw redirect({ to: "/login" });
   },

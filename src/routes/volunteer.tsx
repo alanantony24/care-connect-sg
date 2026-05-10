@@ -10,6 +10,7 @@ import { getGreeting } from "@/lib/format";
 
 export const Route = createFileRoute("/volunteer")({
   beforeLoad: async () => {
+    if (typeof window === "undefined") return;
     const { data } = await supabase.auth.getSession();
     if (!data.session) throw redirect({ to: "/login" });
   },
@@ -56,9 +57,7 @@ function VolunteerHome() {
     return list;
   }, [rows, filter]);
 
-  const myActive = (rows ?? []).find(
-    (r) => r.claimed_by === profile?.id && r.status === "claimed",
-  );
+  const myActive = (rows ?? []).find((r) => r.claimed_by === profile?.id && r.status === "claimed");
 
   if (!profile) {
     return (
@@ -150,7 +149,10 @@ function VolunteerHome() {
           {rows === null ? (
             <CardSkeleton />
           ) : visible.length === 0 ? (
-            <EmptyHint title="No open tasks right now" hint="Check back soon — new tasks appear all day." />
+            <EmptyHint
+              title="No open tasks right now"
+              hint="Check back soon — new tasks appear all day."
+            />
           ) : (
             <div className="space-y-3">
               {visible.map((r) => (

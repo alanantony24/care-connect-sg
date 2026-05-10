@@ -9,6 +9,7 @@ import { checkBadgesOnComplete } from "@/lib/badges";
 
 export const Route = createFileRoute("/requests/$id_/end")({
   beforeLoad: async () => {
+    if (typeof window === "undefined") return;
     const { data } = await supabase.auth.getSession();
     if (!data.session) throw redirect({ to: "/login" });
   },
