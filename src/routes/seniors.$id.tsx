@@ -1,5 +1,5 @@
 import { createFileRoute, Link, redirect, useNavigate, notFound } from "@tanstack/react-router";
-import { ArrowLeft, Phone, Calendar, MapPin, Heart, AlertTriangle, FileText } from "lucide-react";
+import { ArrowLeft, Phone, Heart, AlertTriangle, FileText, Pencil, Accessibility } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { getSenior } from "@/lib/seniors";
 
