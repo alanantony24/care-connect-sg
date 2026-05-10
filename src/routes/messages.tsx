@@ -1,6 +1,6 @@
-import { createFileRoute, Link, redirect } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowLeft, MessageCircle, Search, Loader2 } from "lucide-react";
+import { ArrowLeft, MessageCircle, Search, Loader2, PenSquare, X, Mic } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/lib/session";
@@ -23,10 +23,18 @@ interface Conversation {
   unread: number;
 }
 
+interface PeerOption {
+  id: string;
+  name: string;
+  role: string;
+  context: string; // e.g. "Applied to: Walk dad to clinic"
+}
+
 function MessagesList() {
   const { profile } = useSession();
   const [convos, setConvos] = useState<Conversation[] | null>(null);
   const [search, setSearch] = useState("");
+  const [showPicker, setShowPicker] = useState(false);
 
   useEffect(() => {
     if (!profile) return;
@@ -50,33 +58,10 @@ function MessagesList() {
           peer_id: peerId,
           peer_name: "",
           peer_role: "",
-          last_message: m.content,
+          last_message: previewContent(m.content),
           last_at: m.created_at,
           unread: m.recipient_id === profile.id && !m.read_at ? 1 : 0,
         });
-      }
-
-      if (byPeer.size === 0) {
-        setConvos([]);
-        return;
-      }
-
-      const ids = Array.from(byPeer.keys());
-
-      // Only keep peers who currently share an active (non-completed) task
-      const { data: activeReqs } = await supabase
-        .from("requests")
-        .select("requester_id, claimed_by, status")
-        .neq("status", "completed")
-        .or(`requester_id.eq.${profile.id},claimed_by.eq.${profile.id}`);
-      const activePeers = new Set<string>();
-      for (const r of (activeReqs ?? []) as any[]) {
-        if (!r.claimed_by) continue;
-        const peer = r.requester_id === profile.id ? r.claimed_by : r.requester_id;
-        if (peer) activePeers.add(peer);
-      }
-      for (const id of ids) {
-        if (!activePeers.has(id)) byPeer.delete(id);
       }
 
       if (byPeer.size === 0) {
@@ -119,7 +104,14 @@ function MessagesList() {
           <ArrowLeft className="size-5" />
         </Link>
         <p className="text-primary font-bold text-lg">Messages</p>
-        <div className="size-10" />
+        <button
+          type="button"
+          onClick={() => setShowPicker(true)}
+          aria-label="New chat"
+          className="size-10 grid place-items-center rounded-full bg-primary text-primary-foreground shadow-elevated"
+        >
+          <PenSquare className="size-5" />
+        </button>
       </header>
 
       <div className="container-app">
@@ -145,8 +137,8 @@ function MessagesList() {
               </div>
               <p className="mt-4 font-semibold">No conversations yet</p>
               <p className="text-sm text-muted-foreground mt-1 max-w-xs mx-auto">
-                Open a task and tap Message to start chatting with a{" "}
-                {profile?.role === "volunteer" ? "caregiver" : "volunteer"}.
+                Tap the pencil icon to start a chat with{" "}
+                {profile?.role === "volunteer" ? "a caregiver" : "a volunteer who applied"}.
               </p>
             </div>
           ) : (
@@ -169,9 +161,10 @@ function MessagesList() {
                         </span>
                       </div>
                       <p
-                        className={`text-sm truncate ${c.unread > 0 ? "text-foreground font-medium" : "text-muted-foreground"}`}
+                        className={`text-sm truncate flex items-center gap-1 ${c.unread > 0 ? "text-foreground font-medium" : "text-muted-foreground"}`}
                       >
-                        {c.last_message}
+                        {c.last_message.startsWith("[voice]") && <Mic className="size-3.5" />}
+                        {c.last_message.startsWith("[voice]") ? "Voice message" : c.last_message}
                       </p>
                     </div>
                     {c.unread > 0 && (
@@ -186,8 +179,175 @@ function MessagesList() {
           )}
         </div>
       </div>
+
+      {showPicker && profile && (
+        <NewChatPicker profileId={profile.id} role={profile.role} onClose={() => setShowPicker(false)} />
+      )}
     </AppShell>
   );
+}
+
+function NewChatPicker({
+  profileId,
+  role,
+  onClose,
+}: {
+  profileId: string;
+  role: string;
+  onClose: () => void;
+}) {
+  const nav = useNavigate();
+  const [peers, setPeers] = useState<PeerOption[] | null>(null);
+  const [q, setQ] = useState("");
+
+  useEffect(() => {
+    const load = async () => {
+      if (role === "caregiver") {
+        // All volunteers who applied to any of my requests
+        const { data: reqs } = await supabase
+          .from("requests")
+          .select("id, title")
+          .eq("requester_id", profileId);
+        const reqMap = new Map<string, string>();
+        (reqs ?? []).forEach((r: any) => reqMap.set(r.id, r.title));
+        if (reqMap.size === 0) return setPeers([]);
+        const { data: apps } = await supabase
+          .from("applications")
+          .select("volunteer_id, request_id, status, created_at")
+          .in("request_id", Array.from(reqMap.keys()))
+          .order("created_at", { ascending: false });
+        const seen = new Map<string, { reqTitle: string; status: string }>();
+        (apps ?? []).forEach((a: any) => {
+          if (!seen.has(a.volunteer_id))
+            seen.set(a.volunteer_id, { reqTitle: reqMap.get(a.request_id) ?? "", status: a.status });
+        });
+        if (seen.size === 0) return setPeers([]);
+        const { data: profs } = await supabase
+          .from("profiles")
+          .select("id, name, role")
+          .in("id", Array.from(seen.keys()));
+        setPeers(
+          (profs ?? []).map((p: any) => {
+            const info = seen.get(p.id)!;
+            return {
+              id: p.id,
+              name: p.name,
+              role: p.role,
+              context: `${info.status === "accepted" ? "Confirmed" : "Applied"} · ${info.reqTitle}`,
+            };
+          }),
+        );
+      } else {
+        // Volunteer: caregivers whose tasks I applied to or am claimed on
+        const { data: apps } = await supabase
+          .from("applications")
+          .select("request_id, status, created_at")
+          .eq("volunteer_id", profileId)
+          .order("created_at", { ascending: false });
+        const reqIds = (apps ?? []).map((a: any) => a.request_id);
+        if (reqIds.length === 0) return setPeers([]);
+        const { data: reqs } = await supabase
+          .from("requests")
+          .select("id, title, requester_id")
+          .in("id", reqIds);
+        const seen = new Map<string, { reqTitle: string; status: string }>();
+        (reqs ?? []).forEach((r: any) => {
+          const app = (apps ?? []).find((a: any) => a.request_id === r.id);
+          if (!seen.has(r.requester_id))
+            seen.set(r.requester_id, { reqTitle: r.title, status: app?.status ?? "applied" });
+        });
+        if (seen.size === 0) return setPeers([]);
+        const { data: profs } = await supabase
+          .from("profiles")
+          .select("id, name, role")
+          .in("id", Array.from(seen.keys()));
+        setPeers(
+          (profs ?? []).map((p: any) => {
+            const info = seen.get(p.id)!;
+            return {
+              id: p.id,
+              name: p.name,
+              role: p.role,
+              context: `${info.status === "accepted" ? "Confirmed" : "Applied"} · ${info.reqTitle}`,
+            };
+          }),
+        );
+      }
+    };
+    load();
+  }, [profileId, role]);
+
+  const filtered = (peers ?? []).filter((p) => p.name.toLowerCase().includes(q.toLowerCase()));
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/40 flex items-end sm:items-center sm:justify-center">
+      <div className="w-full sm:max-w-md bg-background rounded-t-3xl sm:rounded-3xl border-t sm:border shadow-elevated max-h-[85vh] flex flex-col">
+        <div className="flex items-center justify-between p-4 border-b">
+          <p className="font-bold text-lg">New chat</p>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close"
+            className="size-9 grid place-items-center rounded-full hover:bg-muted"
+          >
+            <X className="size-5" />
+          </button>
+        </div>
+        <div className="p-4 border-b">
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+            <input
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder={role === "caregiver" ? "Search volunteers" : "Search caregivers"}
+              autoFocus
+              className="w-full rounded-full bg-card border pl-11 pr-4 py-2.5 text-sm outline-none focus:border-primary"
+            />
+          </div>
+        </div>
+        <div className="flex-1 overflow-y-auto p-2">
+          {peers === null ? (
+            <div className="grid place-items-center py-10">
+              <Loader2 className="size-5 animate-spin text-muted-foreground" />
+            </div>
+          ) : filtered.length === 0 ? (
+            <p className="text-center text-sm text-muted-foreground py-10 px-6">
+              {role === "caregiver"
+                ? "No volunteers have applied to your tasks yet."
+                : "Apply to a task first to start a conversation with the caregiver."}
+            </p>
+          ) : (
+            <ul>
+              {filtered.map((p) => (
+                <li key={p.id}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onClose();
+                      nav({ to: "/messages/$peerId", params: { peerId: p.id } });
+                    }}
+                    className="w-full flex items-center gap-3 rounded-xl p-3 hover:bg-muted text-left"
+                  >
+                    <div className="size-11 rounded-full bg-primary-soft text-primary grid place-items-center font-semibold">
+                      {p.name.charAt(0)}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-semibold truncate">{p.name}</p>
+                      <p className="text-xs text-muted-foreground truncate">{p.context}</p>
+                    </div>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function previewContent(c: string) {
+  return c ?? "";
 }
 
 function timeAgo(iso: string) {
