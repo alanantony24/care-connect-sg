@@ -10,6 +10,7 @@ import {
   clampTaskPayment,
   paymentGuidance,
   platformFeeFor,
+  taskBadgeStyle,
   volunteerPayoutFor,
   type TaskType,
 } from "@/lib/tasks";
@@ -115,18 +116,32 @@ function NewRequest() {
           <div className="grid grid-cols-3 gap-2">
             {TASK_TYPES.map((t) => {
               const Icon = t.icon;
+              const style = taskBadgeStyle(t.value);
               const active = taskType === t.value;
               return (
                 <button
                   type="button"
                   key={t.value}
                   onClick={() => setTaskType(t.value)}
-                  className={`flex flex-col items-center gap-1.5 rounded-2xl border p-3 transition-colors ${
-                    active ? "border-primary bg-primary-soft" : "bg-card"
+                  className={`relative overflow-hidden flex flex-col items-center gap-1.5 rounded-2xl border p-3 transition-transform active:scale-[0.98] ${
+                    active ? style.glass : "bg-card text-muted-foreground"
                   }`}
                 >
-                  <Icon className={`size-5 ${active ? "text-primary" : "text-muted-foreground"}`} />
-                  <span className="text-xs font-medium">{t.label}</span>
+                  {active && (
+                    <span
+                      className={`absolute -right-5 -top-6 size-16 rounded-full ${style.glow} blur-2xl`}
+                    />
+                  )}
+                  <span
+                    className={`relative size-9 grid place-items-center rounded-xl ${
+                      active ? style.icon : "bg-muted text-muted-foreground"
+                    }`}
+                  >
+                    <Icon className="size-5" strokeWidth={2.3} />
+                  </span>
+                  <span className={`relative text-xs font-medium ${active ? "text-white/80" : ""}`}>
+                    {t.label}
+                  </span>
                 </button>
               );
             })}
@@ -167,11 +182,13 @@ function NewRequest() {
         <div>
           <span className="block text-sm font-medium mb-2">Priority</span>
           <div className="grid grid-cols-3 gap-2">
-            {([
-              { v: "low", label: "Low", hint: "Flexible" },
-              { v: "normal", label: "Normal", hint: "Standard" },
-              { v: "high", label: "High", hint: "Urgent" },
-            ] as const).map((p) => {
+            {(
+              [
+                { v: "low", label: "Low", hint: "Flexible" },
+                { v: "normal", label: "Normal", hint: "Standard" },
+                { v: "high", label: "High", hint: "Urgent" },
+              ] as const
+            ).map((p) => {
               const active = priority === p.v;
               const tone =
                 p.v === "high"

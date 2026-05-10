@@ -4,7 +4,7 @@ import { AppShell } from "@/components/AppShell";
 import { FeeReceipt } from "@/components/FeeReceipt";
 import { useSession } from "@/lib/session";
 import { supabase } from "@/integrations/supabase/client";
-import { platformFeeFor, taskMeta, volunteerPayoutFor } from "@/lib/tasks";
+import { platformFeeFor, taskBadgeStyle, taskMeta, volunteerPayoutFor } from "@/lib/tasks";
 import { toast } from "sonner";
 import {
   ArrowLeft,
@@ -111,6 +111,7 @@ function TaskDetail() {
   }
 
   const meta = taskMeta(r.task_type);
+  const taskStyle = taskBadgeStyle(r.task_type);
   const Icon = meta.icon;
   const isVolunteer = profile.role === "volunteer";
   const isMine = profile.id === r.requester_id;
@@ -190,7 +191,9 @@ function TaskDetail() {
               ● High priority
             </span>
           )}
-          <span className="rounded-full bg-primary-soft text-primary text-xs font-semibold px-3 py-1.5 capitalize">
+          <span
+            className={`rounded-full border text-xs font-semibold px-3 py-1.5 capitalize backdrop-blur-md ${taskStyle.compact}`}
+          >
             {meta.label}
           </span>
           <span className="rounded-full bg-muted text-muted-foreground text-xs font-semibold px-3 py-1.5 capitalize">
@@ -198,11 +201,18 @@ function TaskDetail() {
           </span>
         </div>
 
-        <div className="mt-5 rounded-2xl border border-primary/20 bg-card p-5 shadow-card overflow-hidden relative">
-          <div className="absolute inset-x-0 top-0 h-28 bg-gradient-to-br from-primary-soft/65 via-primary-soft/15 to-transparent pointer-events-none" />
+        <div className="mt-5 rounded-2xl border border-white/15 bg-card p-5 shadow-card overflow-hidden relative">
+          <div
+            className={`absolute inset-x-0 top-0 h-32 ${taskStyle.glass} opacity-95 pointer-events-none`}
+          />
+          <div
+            className={`absolute -right-10 -top-10 size-36 rounded-full ${taskStyle.glow} blur-3xl`}
+          />
           <div className="relative">
-            <span className="size-20 grid place-items-center rounded-2xl bg-primary text-primary-foreground shadow-elevated">
-              <Icon className="size-10" />
+            <span
+              className={`size-20 grid place-items-center rounded-2xl ${taskStyle.icon} shadow-elevated backdrop-blur-md`}
+            >
+              <Icon className="size-10" strokeWidth={2.3} />
             </span>
 
             <div className="mt-7">

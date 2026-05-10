@@ -6,7 +6,7 @@ import { useSession } from "@/lib/session";
 import { supabase } from "@/integrations/supabase/client";
 import { Bell, Loader2, MapPin, Plus, Calendar, ChevronRight } from "lucide-react";
 import mascot from "@/assets/mascot.png";
-import { taskMeta } from "@/lib/tasks";
+import { taskBadgeStyle, taskMeta } from "@/lib/tasks";
 import { formatDateFriendly, formatTimeFriendly, getGreeting } from "@/lib/format";
 import { toast } from "sonner";
 
@@ -188,6 +188,7 @@ function Dashboard() {
 
 function InProgressCard({ r }: { r: RequestRow }) {
   const meta = taskMeta(r.task_type);
+  const style = taskBadgeStyle(r.task_type);
   const Icon = meta.icon;
   return (
     <Link
@@ -196,8 +197,8 @@ function InProgressCard({ r }: { r: RequestRow }) {
       className="block rounded-3xl bg-card border-2 border-primary/30 p-5 shadow-elevated active:scale-[0.99] transition-transform"
     >
       <div className="flex items-start gap-4">
-        <span className="size-14 grid place-items-center rounded-2xl bg-primary text-primary-foreground shrink-0">
-          <Icon className="size-7" />
+        <span className={`size-14 grid place-items-center rounded-2xl ${style.section} shrink-0`}>
+          <Icon className="size-7" strokeWidth={2.3} />
         </span>
         <div className="flex-1 min-w-0">
           <p className="text-xl font-bold leading-tight">{r.title}</p>
@@ -215,9 +216,7 @@ function InProgressCard({ r }: { r: RequestRow }) {
           )}
         </div>
       </div>
-      <div
-        className="mt-4 w-full rounded-full bg-primary text-primary-foreground py-3 font-semibold shadow-elevated flex items-center justify-center gap-2"
-      >
+      <div className="mt-4 w-full rounded-full bg-primary text-primary-foreground py-3 font-semibold shadow-elevated flex items-center justify-center gap-2">
         View Task <ChevronRight className="size-5" />
       </div>
     </Link>
@@ -226,6 +225,7 @@ function InProgressCard({ r }: { r: RequestRow }) {
 
 export function RequestCard({ r }: { r: RequestRow & { requester?: { name: string } | null } }) {
   const meta = taskMeta(r.task_type);
+  const style = taskBadgeStyle(r.task_type);
   const Icon = meta.icon;
   const displayStatus = r.status === "claimed" && r.started_at ? "in progress" : r.status;
   const tone =
@@ -237,8 +237,8 @@ export function RequestCard({ r }: { r: RequestRow & { requester?: { name: strin
   return (
     <div className="rounded-2xl bg-card border p-4 shadow-card">
       <div className="flex items-start gap-3">
-        <span className="size-11 grid place-items-center rounded-xl bg-primary-soft text-primary shrink-0">
-          <Icon className="size-5" />
+        <span className={`size-11 grid place-items-center rounded-xl ${style.section} shrink-0`}>
+          <Icon className="size-5" strokeWidth={2.3} />
         </span>
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
@@ -249,7 +249,11 @@ export function RequestCard({ r }: { r: RequestRow & { requester?: { name: strin
               {displayStatus}
             </span>
           </div>
-          <p className="text-xs text-muted-foreground mt-1 capitalize">{meta.label}</p>
+          <span
+            className={`mt-1 inline-flex rounded-full border px-2 py-0.5 text-[11px] font-semibold capitalize backdrop-blur-md ${style.compact}`}
+          >
+            {meta.label}
+          </span>
           <div className="mt-3 space-y-1.5 text-xs text-muted-foreground">
             <div className="flex items-center gap-1.5">
               <MapPin className="size-3.5 shrink-0" />
