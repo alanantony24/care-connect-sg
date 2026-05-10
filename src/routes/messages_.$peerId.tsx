@@ -28,6 +28,7 @@ function ChatThread() {
   const [peer, setPeer] = useState<{ name: string; role: string } | null>(null);
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
+  const [hasActiveTask, setHasActiveTask] = useState<boolean | null>(null);
   const endRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -38,6 +39,22 @@ function ChatThread() {
       .maybeSingle()
       .then(({ data }) => setPeer(data as any));
   }, [peerId]);
+
+  useEffect(() => {
+    if (!profile) return;
+    const checkActive = async () => {
+      const { data } = await supabase
+        .from("requests")
+        .select("id")
+        .neq("status", "completed")
+        .or(
+          `and(requester_id.eq.${profile.id},claimed_by.eq.${peerId}),and(requester_id.eq.${peerId},claimed_by.eq.${profile.id})`,
+        )
+        .limit(1);
+      setHasActiveTask((data ?? []).length > 0);
+    };
+    checkActive();
+  }, [profile, peerId]);
 
   useEffect(() => {
     if (!profile) return;
