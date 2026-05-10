@@ -434,11 +434,16 @@ function TaskDetail() {
                       <MessageCircle className="size-4" />
                     </Link>
                     <button
-                      disabled={busy}
+                      disabled={confirmingId !== null}
                       onClick={() => confirmVolunteer(a.volunteer_id)}
                       className="rounded-full bg-primary text-primary-foreground text-xs font-semibold px-3 py-2 shadow-elevated disabled:opacity-50 flex items-center gap-1"
                     >
-                      <UserCheck className="size-3.5" /> Accept
+                      {confirmingId === a.volunteer_id ? (
+                        <Loader2 className="size-3.5 animate-spin" />
+                      ) : (
+                        <UserCheck className="size-3.5" />
+                      )}
+                      Accept
                     </button>
                   </li>
                 ))}
