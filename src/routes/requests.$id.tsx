@@ -49,6 +49,7 @@ interface RequestRow {
   end_pin: string | null;
   started_at: string | null;
   payment_amount: number | null;
+  priority: string | null;
   requester: { name: string; avatar_url: string | null } | null;
   claimer: { name: string; avatar_url: string | null } | null;
 }
@@ -186,11 +187,20 @@ function TaskDetail() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          {urgent && (
-            <span className="rounded-full bg-destructive/10 text-destructive text-xs font-semibold px-3 py-1.5">
-              ● High priority
-            </span>
-          )}
+          {(() => {
+            const pr = (r.priority ?? "normal") as "low" | "normal" | "high";
+            const meta = {
+              low: { label: "Low priority", chip: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300", dot: "bg-emerald-500" },
+              normal: { label: "Normal priority", chip: "bg-amber-500/15 text-amber-700 dark:text-amber-300", dot: "bg-amber-500" },
+              high: { label: "High priority", chip: "bg-red-500/15 text-red-600 dark:text-red-300", dot: "bg-red-500" },
+            }[pr];
+            return (
+              <span className={`inline-flex items-center gap-1.5 rounded-full text-xs font-semibold px-3 py-1.5 ${meta.chip}`}>
+                <span className={`size-2 rounded-full ${meta.dot}`} />
+                {meta.label}
+              </span>
+            );
+          })()}
           <span
             className={`rounded-full border text-xs font-semibold px-3 py-1.5 capitalize backdrop-blur-md ${taskStyle.compact}`}
           >
