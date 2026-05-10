@@ -56,16 +56,52 @@ function TaskDetail() {
   const nav = useNavigate();
   const [r, setR] = useState<RequestRow | null>(null);
 
-  useEffect(() => {
-    supabase
+interface Application {
+  id: string;
+  volunteer_id: string;
+  status: string;
+  created_at: string;
+  volunteer: { name: string; avatar_url: string | null; tasks_helped: number } | null;
+}
+
+function TaskDetail() {
+  const { id } = useParams({ from: "/requests/$id" });
+  const { profile } = useSession();
+  const nav = useNavigate();
+  const [r, setR] = useState<RequestRow | null>(null);
+  const [apps, setApps] = useState<Application[]>([]);
+  const [myApp, setMyApp] = useState<Application | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  const load = useCallback(async () => {
+    const { data } = await supabase
       .from("requests")
       .select(
         "*, requester:profiles!requests_requester_id_fkey(name, avatar_url), claimer:profiles!requests_claimed_by_fkey(name, avatar_url)",
       )
       .eq("id", id)
-      .maybeSingle()
-      .then(({ data }) => setR(data as RequestRow | null));
+      .maybeSingle();
+    setR(data as RequestRow | null);
   }, [id]);
+
+  const loadApps = useCallback(async () => {
+    if (!profile) return;
+    const { data } = await supabase
+      .from("applications")
+      .select(
+        "id, volunteer_id, status, created_at, volunteer:profiles!applications_volunteer_id_fkey(name, avatar_url, tasks_helped)",
+      )
+      .eq("request_id", id)
+      .order("created_at", { ascending: true });
+    const list = (data ?? []) as unknown as Application[];
+    setApps(list);
+    setMyApp(list.find((a) => a.volunteer_id === profile.id) ?? null);
+  }, [id, profile]);
+
+  useEffect(() => {
+    load();
+    loadApps();
+  }, [load, loadApps]);
 
   if (!r || !profile) {
     return (
@@ -85,6 +121,57 @@ function TaskDetail() {
   const isStarted = r.status === "claimed" && Boolean(r.started_at);
   const ageHours = (Date.now() - new Date(r.created_at).getTime()) / 36e5;
   const urgent = r.status === "open" && ageHours < 12;
+  const pendingApps = apps.filter((a) => a.status === "pending");
+
+  const apply = async () => {
+    setBusy(true);
+    const { error } = await supabase
+      .from("applications")
+      .insert({ request_id: id, volunteer_id: profile.id, status: "pending" });
+    setBusy(false);
+    if (error) return toast.error(error.message);
+    toast.success("Application sent!");
+    loadApps();
+  };
+
+  const withdraw = async () => {
+    if (!myApp) return;
+    setBusy(true);
+    const { error } = await supabase.from("applications").delete().eq("id", myApp.id);
+    setBusy(false);
+    if (error) return toast.error(error.message);
+    toast.success("Application withdrawn");
+    loadApps();
+  };
+
+  const confirmVolunteer = async (volunteerId: string) => {
+    setBusy(true);
+    const { error: e1 } = await supabase
+      .from("requests")
+      .update({ status: "claimed", claimed_by: volunteerId })
+      .eq("id", id);
+    if (e1) {
+      setBusy(false);
+      return toast.error(e1.message);
+    }
+    await supabase
+      .from("applications")
+      .update({ status: "accepted" })
+      .eq("request_id", id)
+      .eq("volunteer_id", volunteerId);
+    await supabase
+      .from("applications")
+      .update({ status: "declined" })
+      .eq("request_id", id)
+      .neq("volunteer_id", volunteerId)
+      .eq("status", "pending");
+    setBusy(false);
+    toast.success("Volunteer confirmed");
+    load();
+    loadApps();
+  };
+
+
 
   const back = isVolunteer ? "/volunteer" : "/dashboard";
 
