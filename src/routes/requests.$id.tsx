@@ -4,7 +4,7 @@ import { AppShell } from "@/components/AppShell";
 import { FeeReceipt } from "@/components/FeeReceipt";
 import { useSession } from "@/lib/session";
 import { supabase } from "@/integrations/supabase/client";
-import { platformFeeFor, taskMeta, volunteerPayoutFor } from "@/lib/tasks";
+import { platformFeeFor, taskBadgeStyle, taskMeta, volunteerPayoutFor } from "@/lib/tasks";
 import { toast } from "sonner";
 import {
   ArrowLeft,
@@ -111,6 +111,7 @@ function TaskDetail() {
   }
 
   const meta = taskMeta(r.task_type);
+  const taskStyle = taskBadgeStyle(r.task_type);
   const Icon = meta.icon;
   const isVolunteer = profile.role === "volunteer";
   const isMine = profile.id === r.requester_id;
@@ -171,8 +172,6 @@ function TaskDetail() {
     loadApps();
   };
 
-
-
   const back = isVolunteer ? "/volunteer" : "/dashboard";
 
   return (
@@ -192,7 +191,9 @@ function TaskDetail() {
               ● High priority
             </span>
           )}
-          <span className="rounded-full bg-primary-soft text-primary text-xs font-semibold px-3 py-1.5 capitalize">
+          <span
+            className={`rounded-full border text-xs font-semibold px-3 py-1.5 capitalize backdrop-blur-md ${taskStyle.compact}`}
+          >
             {meta.label}
           </span>
           <span className="rounded-full bg-muted text-muted-foreground text-xs font-semibold px-3 py-1.5 capitalize">
@@ -200,9 +201,53 @@ function TaskDetail() {
           </span>
         </div>
 
-        <h1 className="text-3xl font-bold mt-3 leading-tight">{r.title}</h1>
+        <div className="mt-5 rounded-2xl border border-white/15 bg-card p-5 shadow-card overflow-hidden relative">
+          <div
+            className={`absolute inset-x-0 top-0 h-32 ${taskStyle.glass} opacity-95 pointer-events-none`}
+          />
+          <div
+            className={`absolute -right-10 -top-10 size-36 rounded-full ${taskStyle.glow} blur-3xl`}
+          />
+          <div className="relative">
+            <span
+              className={`size-20 grid place-items-center rounded-2xl ${taskStyle.icon} shadow-elevated backdrop-blur-md`}
+            >
+              <Icon className="size-10" strokeWidth={2.3} />
+            </span>
 
-        <div className="mt-5 rounded-2xl bg-card border p-4 shadow-card">
+            <div className="mt-7">
+              <h1 className="text-3xl font-bold leading-tight">{r.title}</h1>
+              <p className="mt-2 text-base leading-7 text-muted-foreground">
+                {r.notes ?? "No additional notes provided."}
+              </p>
+            </div>
+
+            <div className="mt-6 border-t pt-5 space-y-4">
+              <TaskCardDetail
+                icon={<Icon className="size-5" />}
+                label="Task type"
+                text={meta.label}
+              />
+              <TaskCardDetail
+                icon={<Calendar className="size-5" />}
+                label="Date & Time"
+                text={`${formatDateFriendly(r.date_needed)}, ${formatTimeFriendly(r.time_needed)}`}
+              />
+              <TaskCardDetail
+                icon={<MapPin className="size-5" />}
+                label="Location"
+                text={r.location}
+              />
+              <TaskCardDetail
+                icon={<Clock className="size-5" />}
+                label="Posted"
+                text={`${Math.max(1, Math.round(ageHours))}h ago`}
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-4 rounded-2xl bg-card border p-4 shadow-card">
           <p className="text-xs uppercase tracking-wider text-muted-foreground">Caregiver</p>
           <div className="mt-2 flex items-center gap-3">
             <div className="size-12 rounded-full bg-primary-soft text-primary grid place-items-center text-lg font-semibold">
@@ -213,21 +258,6 @@ function TaskDetail() {
               <p className="text-xs text-muted-foreground">Requesting help</p>
             </div>
           </div>
-        </div>
-
-        <div className="mt-4 rounded-2xl bg-card border shadow-card divide-y">
-          <Row icon={<Icon className="size-5" />} label="Task type" text={meta.label} />
-          <Row
-            icon={<Calendar className="size-5" />}
-            label="Date & time"
-            text={`${formatDateFriendly(r.date_needed)}, ${formatTimeFriendly(r.time_needed)}`}
-          />
-          <Row icon={<MapPin className="size-5" />} label="Location" text={r.location} />
-          <Row
-            icon={<Clock className="size-5" />}
-            label="Posted"
-            text={`${Math.max(1, Math.round(ageHours))}h ago`}
-          />
         </div>
 
         <div className="mt-4 rounded-2xl overflow-hidden border shadow-card bg-muted">
@@ -252,9 +282,7 @@ function TaskDetail() {
                   ? "Payment released"
                   : "Payment offered"}
             </p>
-            <p className="text-2xl font-bold text-primary">
-              S${grossAmount.toFixed(2)}
-            </p>
+            <p className="text-2xl font-bold text-primary">S${grossAmount.toFixed(2)}</p>
           </div>
           <span className="text-[11px] text-muted-foreground max-w-[40%] text-right leading-tight">
             {isStarted
@@ -264,15 +292,6 @@ function TaskDetail() {
                 : "Held securely until task ends"}
           </span>
         </div>
-
-        {r.notes && (
-          <div className="mt-4 rounded-2xl bg-muted p-4">
-            <p className="text-xs uppercase tracking-wider font-semibold text-muted-foreground">
-              Notes
-            </p>
-            <p className="mt-2 text-sm leading-6">{r.notes}</p>
-          </div>
-        )}
 
         {/* PINs visible to caregiver (the requester) only */}
         {isMine && r.status !== "completed" && (
@@ -494,15 +513,21 @@ function PinBlock({ label, value }: { label: string; value: string | null }) {
   );
 }
 
-function Row({ icon, label, text }: { icon: React.ReactNode; label: string; text: string }) {
+function TaskCardDetail({
+  icon,
+  label,
+  text,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  text: string;
+}) {
   return (
-    <div className="flex items-center gap-4 p-4">
-      <span className="size-10 grid place-items-center rounded-xl bg-primary-soft text-primary">
-        {icon}
-      </span>
-      <div className="min-w-0">
-        <p className="text-xs text-muted-foreground">{label}</p>
-        <p className="font-semibold truncate">{text}</p>
+    <div className="flex items-start gap-3">
+      <span className="mt-0.5 text-muted-foreground">{icon}</span>
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-semibold text-muted-foreground">{label}</p>
+        <p className="text-lg font-semibold leading-snug break-words">{text}</p>
       </div>
     </div>
   );

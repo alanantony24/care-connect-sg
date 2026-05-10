@@ -1,6 +1,7 @@
 import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ArrowLeft, Award, Heart, Star, Timer, Loader2, CheckCircle2, BadgeCheck } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/lib/session";
 import { toast } from "sonner";
@@ -138,7 +139,7 @@ function ReviewPage() {
           <p className="text-sm font-semibold mb-2">
             {isVolunteer ? "Caregiver Review (Optional)" : "Comments (Optional)"}
           </p>
-          <textarea
+          <Textarea
             rows={4}
             value={comment}
             onChange={(e) => setComment(e.target.value)}
@@ -147,7 +148,7 @@ function ReviewPage() {
                 ? "Share your experience…"
                 : `Share a few words about how ${reviewee?.name?.split(" ")[0] ?? "they"} helped today…`
             }
-            className="kinput resize-none"
+            className="mt-2 min-h-28 w-full resize-none rounded-2xl border-border bg-background px-4 py-3 text-sm shadow-none"
           />
         </div>
 

@@ -15,7 +15,13 @@ const volunteerNav = [
   { to: "/profile", label: "Profile", icon: UserRound },
 ];
 
-export function AppShell({ children, hideNav = false }: { children: ReactNode; hideNav?: boolean }) {
+export function AppShell({
+  children,
+  hideNav = false,
+}: {
+  children: ReactNode;
+  hideNav?: boolean;
+}) {
   const { profile } = useSession();
   const location = useLocation();
   const nav = profile?.role === "volunteer" ? volunteerNav : caregiverNav;
@@ -38,6 +44,7 @@ export function AppShell({ children, hideNav = false }: { children: ReactNode; h
                     item.to !== "/volunteer" &&
                     location.pathname.startsWith(item.to));
                 const Icon = item.icon;
+                const showAvatar = item.to === "/profile" && Boolean(profile?.avatar_url);
                 return (
                   <li key={item.to} className="flex-1">
                     <Link
@@ -50,10 +57,20 @@ export function AppShell({ children, hideNav = false }: { children: ReactNode; h
                     >
                       <span
                         className={`grid place-items-center size-10 rounded-full transition-colors ${
-                          active ? "bg-primary text-primary-foreground" : ""
+                          active && !showAvatar ? "bg-primary text-primary-foreground" : ""
                         }`}
                       >
-                        <Icon className="size-5" strokeWidth={active ? 2.4 : 1.9} />
+                        {showAvatar ? (
+                          <img
+                            src={profile?.avatar_url ?? ""}
+                            alt=""
+                            className={`size-8 rounded-full object-cover ring-2 ${
+                              active ? "ring-primary" : "ring-border"
+                            }`}
+                          />
+                        ) : (
+                          <Icon className="size-5" strokeWidth={active ? 2.4 : 1.9} />
+                        )}
                       </span>
                       <span className={active ? "text-foreground" : ""}>{item.label}</span>
                     </Link>

@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Bell, Loader2, Award, Heart, ChevronRight } from "lucide-react";
 import mascot from "@/assets/mascot.png";
 import { RequestCard, CardSkeleton } from "./dashboard";
-import { TASK_TYPES } from "@/lib/tasks";
+import { TASK_TYPES, taskBadgeStyle } from "@/lib/tasks";
 import { getGreeting } from "@/lib/format";
 
 export const Route = createFileRoute("/volunteer")({
@@ -137,21 +137,28 @@ function VolunteerHome() {
           {rows === null ? (
             <CardSkeleton />
           ) : (
-            <div className="rounded-2xl bg-card border p-4 shadow-card">
+            <div className="rounded-2xl bg-card/70 border p-4 shadow-card backdrop-blur-xl">
               <div className="grid grid-cols-3 gap-2.5">
                 {TASK_TYPES.map((t) => {
+                  const style = taskBadgeStyle(t.value);
                   const Icon = t.icon;
                   const count = openList.filter((r) => r.task_type === t.value).length;
                   return (
                     <div
                       key={t.value}
-                      className="flex flex-col items-center gap-1.5 rounded-xl bg-primary-soft/60 p-3"
+                      className={`relative overflow-hidden flex min-h-28 flex-col items-center justify-center gap-2 rounded-2xl border ${style.glass} p-3 shadow-[0_18px_40px_-24px_rgba(15,23,42,0.9)] backdrop-blur-xl`}
                     >
-                      <span className="size-9 grid place-items-center rounded-lg bg-card text-primary">
-                        <Icon className="size-4" />
+                      <span
+                        className={`absolute -right-6 -top-7 size-20 rounded-full ${style.glow} blur-2xl`}
+                      />
+                      <span className="absolute inset-x-0 top-0 h-px bg-white/25" />
+                      <span
+                        className={`relative size-11 grid place-items-center rounded-2xl ${style.icon} shadow-lg backdrop-blur-md`}
+                      >
+                        <Icon className="size-5" strokeWidth={2.3} />
                       </span>
-                      <p className="text-lg font-bold leading-none text-primary">{count}</p>
-                      <p className="text-[11px] font-medium text-muted-foreground leading-tight text-center">
+                      <p className="relative text-2xl font-extrabold leading-none">{count}</p>
+                      <p className="relative text-[11px] font-semibold leading-tight text-center text-white/70">
                         {t.label}
                       </p>
                     </div>
