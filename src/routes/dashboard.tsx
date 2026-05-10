@@ -1,6 +1,7 @@
 import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { AppShell, PageHeader } from "@/components/AppShell";
+import { MessagesFab } from "@/components/MessagesFab";
 import { useSession } from "@/lib/session";
 import { supabase } from "@/integrations/supabase/client";
 import { Bell, Loader2, MapPin, Plus } from "lucide-react";
@@ -123,6 +124,7 @@ function Dashboard() {
           </div>
         )}
       </div>
+      <MessagesFab />
     </AppShell>
   );
 }
