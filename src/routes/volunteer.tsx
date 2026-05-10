@@ -157,8 +157,8 @@ function VolunteerHome() {
                       >
                         <Icon className="size-5" strokeWidth={2.3} />
                       </span>
-                      <p className="relative text-2xl font-extrabold leading-none">{count}</p>
-                      <p className="relative text-[11px] font-semibold leading-tight text-center text-white/70">
+                      <p className="relative text-2xl font-extrabold leading-none text-slate-900 dark:text-white">{count}</p>
+                      <p className="relative text-[11px] font-semibold leading-tight text-center text-slate-900 dark:text-white/80">
                         {t.label}
                       </p>
                     </div>
