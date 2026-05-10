@@ -52,25 +52,29 @@ function SeniorDetail() {
             <div className="size-24 rounded-full bg-primary text-primary-foreground grid place-items-center text-3xl font-bold border-4 border-card shadow-elevated">
               {senior.name.charAt(0)}
             </div>
-            <h1 className="mt-3 text-2xl font-bold">{senior.name}</h1>
-            <p className="text-sm text-muted-foreground">
-              {senior.age} years · {senior.relation}
-            </p>
+            <h1 className="mt-3 text-2xl font-bold flex items-center gap-2">
+              {senior.name}
+              <button
+                type="button"
+                onClick={() => alert("Edit profile coming soon")}
+                aria-label="Edit care recipient"
+                className="size-8 grid place-items-center rounded-full bg-primary-soft text-primary"
+              >
+                <Pencil className="size-4" />
+              </button>
+            </h1>
+            <p className="text-sm text-muted-foreground">{senior.relation}</p>
           </div>
         </div>
 
-        <div className="mt-4 rounded-2xl bg-card border shadow-card divide-y">
-          <Row icon={<Calendar className="size-5" />} label="Preferred times" text={senior.preferredTimes} />
-          <Row icon={<MapPin className="size-5" />} label="Home address" text={senior.address} />
-          <Row
-            icon={<Phone className="size-5" />}
-            label="Emergency contact"
-            text={`${senior.emergencyContact.name} · ${senior.emergencyContact.phone}`}
-          />
+        <div className="mt-4 grid grid-cols-3 gap-3">
+          <Tile label="Sex" value={senior.sex} />
+          <Tile label="Age" value={`${senior.age}`} />
+          <Tile label="Blood type" value={senior.bloodType} />
         </div>
 
         <h3 className="mt-6 mb-3 text-base font-bold flex items-center gap-2">
-          <Heart className="size-4 text-primary" /> Health & accessibility
+          <Heart className="size-4 text-primary" /> Health information
         </h3>
         <div className="rounded-2xl bg-card border shadow-card p-4">
           <ul className="space-y-2 text-sm">
@@ -84,10 +88,36 @@ function SeniorDetail() {
         </div>
 
         <h3 className="mt-6 mb-3 text-base font-bold flex items-center gap-2">
+          <Accessibility className="size-4 text-primary" /> Accessibility
+        </h3>
+        <div className="rounded-2xl bg-card border shadow-card p-4">
+          <ul className="space-y-2 text-sm">
+            {senior.accessibility.map((c) => (
+              <li key={c} className="flex items-start gap-2">
+                <span className="size-1.5 rounded-full bg-primary mt-2 shrink-0" />
+                <span>{c}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <h3 className="mt-6 mb-3 text-base font-bold flex items-center gap-2">
           <FileText className="size-4 text-primary" /> Notes for volunteers
         </h3>
         <div className="rounded-2xl bg-card border shadow-card p-4">
           <p className="text-sm leading-6 text-muted-foreground">{senior.notes}</p>
+        </div>
+
+        <div className="mt-6 rounded-2xl bg-card border shadow-card p-4 flex items-center gap-3">
+          <span className="size-10 grid place-items-center rounded-xl bg-primary-soft text-primary">
+            <Phone className="size-5" />
+          </span>
+          <div className="min-w-0">
+            <p className="text-xs text-muted-foreground">Emergency contact</p>
+            <p className="font-semibold truncate">
+              {senior.emergencyContact.name} · {senior.emergencyContact.phone}
+            </p>
+          </div>
         </div>
 
         <div className="mt-6 rounded-2xl bg-warning/10 border border-warning/40 p-4 flex gap-3">
