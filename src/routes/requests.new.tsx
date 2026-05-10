@@ -180,6 +180,7 @@ function NewRequest() {
             <input
               required
               type="date"
+              min={todayStr}
               value={date}
               onChange={(e) => setDate(e.target.value)}
               className="kinput"
@@ -189,6 +190,7 @@ function NewRequest() {
             <input
               required
               type="time"
+              step={300}
               value={time}
               onChange={(e) => setTime(e.target.value)}
               className="kinput"
@@ -196,48 +198,60 @@ function NewRequest() {
           </Field>
         </div>
 
-        <Field label="Location / meeting point">
-          <input
-            required
+        <div>
+          <span className="block text-sm font-medium mb-1.5">Location / meeting point</span>
+          <LocationPicker
             value={location}
-            onChange={(e) => setLocation(e.target.value)}
-            className="kinput"
-            placeholder="e.g. Block 102, Ang Mo Kio Ave 3"
+            onChange={setLocation}
+            placeholder="Search address, MRT or postal code"
           />
-        </Field>
+        </div>
 
         <div>
           <span className="block text-sm font-medium mb-2">Priority</span>
           <div className="grid grid-cols-3 gap-2">
             {(
               [
-                { v: "low", label: "Low", hint: "Flexible" },
-                { v: "normal", label: "Normal", hint: "Standard" },
-                { v: "high", label: "High", hint: "Urgent" },
+                {
+                  v: "low",
+                  label: "Low",
+                  hint: "Flexible",
+                  active:
+                    "border-emerald-500 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
+                  dot: "bg-emerald-500",
+                },
+                {
+                  v: "normal",
+                  label: "Normal",
+                  hint: "Standard",
+                  active:
+                    "border-amber-500 bg-amber-500/10 text-amber-700 dark:text-amber-300",
+                  dot: "bg-amber-500",
+                },
+                {
+                  v: "high",
+                  label: "High",
+                  hint: "Urgent",
+                  active: "border-red-500 bg-red-500/10 text-red-600 dark:text-red-300",
+                  dot: "bg-red-500",
+                },
               ] as const
             ).map((p) => {
               const active = priority === p.v;
-              const tone =
-                p.v === "high"
-                  ? active
-                    ? "border-destructive bg-destructive/10 text-destructive"
-                    : "bg-card"
-                  : p.v === "low"
-                    ? active
-                      ? "border-primary bg-primary-soft text-primary"
-                      : "bg-card"
-                    : active
-                      ? "border-primary bg-primary-soft"
-                      : "bg-card";
               return (
                 <button
                   type="button"
                   key={p.v}
                   onClick={() => setPriority(p.v)}
-                  className={`rounded-2xl border p-3 text-left transition-colors ${tone}`}
+                  className={`rounded-2xl border p-3 text-left transition-colors ${
+                    active ? p.active : "bg-card"
+                  }`}
                 >
-                  <p className="text-sm font-semibold">{p.label}</p>
-                  <p className="text-xs opacity-80">{p.hint}</p>
+                  <div className="flex items-center gap-2">
+                    <span className={`size-2.5 rounded-full ${p.dot}`} />
+                    <p className="text-sm font-semibold">{p.label}</p>
+                  </div>
+                  <p className="text-xs opacity-80 mt-1">{p.hint}</p>
                 </button>
               );
             })}
