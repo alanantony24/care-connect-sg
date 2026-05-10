@@ -245,6 +245,40 @@ function ProfilePage() {
           </>
         )}
 
+        {/* Volunteer: My Info */}
+        {isVolunteer && info && (
+          <>
+            <h3 className="mt-7 mb-3 text-base font-bold">My Info</h3>
+            <div className="rounded-2xl bg-card border shadow-card divide-y">
+              {info.age != null && <InfoRow label="Age" value={`${info.age}`} />}
+              {info.languages && info.languages.length > 0 && (
+                <InfoRow label="Languages" value={info.languages.join(", ")} />
+              )}
+              {info.preferred_area && (
+                <InfoRow label="Preferred area" value={info.preferred_area} />
+              )}
+              {info.experience && <InfoRow label="Experience" value={info.experience} />}
+              {info.motivation && <InfoRow label="Motivation" value={info.motivation} />}
+              {info.emergency_contact && (
+                <InfoRow label="Emergency contact" value={info.emergency_contact} />
+              )}
+              {info.notes && <InfoRow label="Notes" value={info.notes} />}
+              {info.cert_status && info.cert_status !== "none" && (
+                <InfoRow
+                  label="Certifications"
+                  value={
+                    info.cert_status === "verified"
+                      ? "Verified"
+                      : info.cert_status === "pending"
+                        ? "Pending review (3–5 working days)"
+                        : info.cert_status
+                  }
+                />
+              )}
+            </div>
+          </>
+        )}
+
         {/* Reviews */}
         <h3 className="mt-7 mb-3 text-base font-bold">Reviews</h3>
         <div className="rounded-2xl bg-card border p-4 shadow-card">
