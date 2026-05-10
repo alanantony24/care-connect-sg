@@ -159,14 +159,89 @@ function Feed() {
           ) : visible.length === 0 ? (
             <EmptyHint title={`No ${tab} tasks`} />
           ) : (
-            <div className="space-y-3">
-              {visible.map((r) => (
-                <RequestCard key={r.id} r={r} />
-              ))}
-            </div>
+            <GroupedByCategory rows={visible} />
           )}
         </div>
       </div>
     </AppShell>
+  );
+}
+
+function GroupedByCategory({ rows }: { rows: RequestRow[] }) {
+  const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
+  // Group by task_type, preserving TASK_TYPES order
+  const groups = TASK_TYPES.map((t) => ({
+    type: t.value as TaskType,
+    label: t.label,
+    Icon: t.icon,
+    items: rows.filter((r) => r.task_type === t.value),
+  })).filter((g) => g.items.length > 0);
+
+  if (groups.length === 0) return null;
+
+  const scrollTo = (key: string) => {
+    sectionRefs.current[key]?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  return (
+    <div>
+      {/* Summary dashboard */}
+      <div className="rounded-2xl bg-card border p-4 shadow-card">
+        <p className="text-xs font-semibold tracking-wider text-muted-foreground uppercase mb-3">
+          Summary
+        </p>
+        <div className="grid grid-cols-3 gap-2.5">
+          {groups.map((g) => {
+            const Icon = g.Icon;
+            return (
+              <button
+                key={g.type}
+                type="button"
+                onClick={() => scrollTo(g.type)}
+                className="flex flex-col items-center gap-1.5 rounded-xl bg-primary-soft/60 hover:bg-primary-soft p-3 transition-colors active:scale-[0.98]"
+              >
+                <span className="size-9 grid place-items-center rounded-lg bg-card text-primary">
+                  <Icon className="size-4" />
+                </span>
+                <p className="text-lg font-bold leading-none text-primary">{g.items.length}</p>
+                <p className="text-[11px] font-medium text-muted-foreground leading-tight">
+                  {g.label}
+                </p>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Grouped sections */}
+      <div className="mt-5 space-y-6">
+        {groups.map((g) => {
+          const Icon = g.Icon;
+          return (
+            <section
+              key={g.type}
+              ref={(el) => {
+                sectionRefs.current[g.type] = el;
+              }}
+              className="scroll-mt-20"
+            >
+              <div className="flex items-center gap-2 mb-3">
+                <span className="size-7 grid place-items-center rounded-lg bg-primary-soft text-primary">
+                  <Icon className="size-4" />
+                </span>
+                <h3 className="text-sm font-bold">{g.label}</h3>
+                <span className="text-xs text-muted-foreground">({g.items.length})</span>
+              </div>
+              <div className="space-y-3">
+                {g.items.map((r) => (
+                  <RequestCard key={r.id} r={r} />
+                ))}
+              </div>
+            </section>
+          );
+        })}
+      </div>
+    </div>
   );
 }
