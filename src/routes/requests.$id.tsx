@@ -120,7 +120,7 @@ function TaskDetail() {
   const iClaimed = profile.id === r.claimed_by;
   const isStarted = r.status === "claimed" && Boolean(r.started_at);
   const ageHours = (Date.now() - new Date(r.created_at).getTime()) / 36e5;
-  const urgent = r.status === "open" && ageHours < 12;
+  void ageHours;
   const pendingApps = apps.filter((a) => a.status === "pending");
   const grossAmount = Number(r.payment_amount ?? 0);
   const platformFee = platformFeeFor(grossAmount);
