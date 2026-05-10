@@ -43,14 +43,13 @@ const BADGE_ICONS: Record<BadgeType, typeof Heart> = {
 
 const BADGE_STYLES: Record<
   BadgeType,
-  { shell: string; icon: string; glow: string; label: string; locked: string }
+  { shell: string; icon: string; glow: string; locked: string }
 > = {
   first_responder: {
     shell:
       "border-cyan-200/25 bg-gradient-to-br from-cyan-950 via-blue-950 to-slate-950 text-cyan-50",
     icon: "bg-cyan-300/18 text-cyan-100 ring-cyan-100/25",
     glow: "bg-cyan-300/35",
-    label: "text-cyan-100",
     locked: "from-slate-800 via-slate-900 to-slate-950",
   },
   helping_hand: {
@@ -58,7 +57,6 @@ const BADGE_STYLES: Record<
       "border-rose-200/25 bg-gradient-to-br from-rose-950 via-pink-950 to-slate-950 text-rose-50",
     icon: "bg-rose-300/18 text-rose-100 ring-rose-100/25",
     glow: "bg-rose-300/35",
-    label: "text-rose-100",
     locked: "from-slate-800 via-slate-900 to-slate-950",
   },
   guardian_angel: {
@@ -66,7 +64,6 @@ const BADGE_STYLES: Record<
       "border-amber-200/30 bg-gradient-to-br from-amber-900 via-orange-950 to-stone-950 text-amber-50",
     icon: "bg-amber-200/20 text-amber-100 ring-amber-100/30",
     glow: "bg-amber-300/40",
-    label: "text-amber-100",
     locked: "from-slate-800 via-slate-900 to-slate-950",
   },
   early_bird: {
@@ -74,7 +71,6 @@ const BADGE_STYLES: Record<
       "border-indigo-200/25 bg-gradient-to-br from-indigo-950 via-violet-950 to-slate-950 text-indigo-50",
     icon: "bg-indigo-300/18 text-indigo-100 ring-indigo-100/25",
     glow: "bg-indigo-300/35",
-    label: "text-indigo-100",
     locked: "from-slate-800 via-slate-900 to-slate-950",
   },
   trusted_helper: {
@@ -82,7 +78,6 @@ const BADGE_STYLES: Record<
       "border-emerald-200/25 bg-gradient-to-br from-emerald-950 via-teal-950 to-slate-950 text-emerald-50",
     icon: "bg-emerald-300/18 text-emerald-100 ring-emerald-100/25",
     glow: "bg-emerald-300/35",
-    label: "text-emerald-100",
     locked: "from-slate-800 via-slate-900 to-slate-950",
   },
 };
@@ -385,8 +380,8 @@ function ProfilePage() {
                           )}
                         </div>
                         <p
-                          className={`text-xs font-semibold leading-tight ${
-                            got ? style.label : "text-muted-foreground"
+                          className={`text-xs font-bold leading-tight ${
+                            got ? "text-foreground" : "text-muted-foreground"
                           }`}
                         >
                           {b.name}
