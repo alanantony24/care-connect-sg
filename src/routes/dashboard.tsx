@@ -31,6 +31,7 @@ interface RequestRow {
   started_at?: string | null;
   claimed_by: string | null;
   payment_amount?: number | null;
+  priority?: string | null;
   claimer?: { name: string } | null;
 }
 
