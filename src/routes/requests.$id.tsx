@@ -15,6 +15,7 @@ import {
   KeyRound,
   PlayCircle,
   Wallet,
+  MessageCircle,
 } from "lucide-react";
 
 export const Route = createFileRoute("/requests/$id")({
@@ -205,9 +206,35 @@ function TaskDetail() {
               <div className="size-12 rounded-full bg-primary-soft text-primary grid place-items-center text-lg font-semibold">
                 {r.claimer.name.charAt(0)}
               </div>
-              <p className="font-semibold">{r.claimer.name}</p>
+              <p className="font-semibold flex-1">{r.claimer.name}</p>
+              {profile.id !== r.claimed_by && r.claimed_by && (
+                <Link
+                  to="/messages/$peerId"
+                  params={{ peerId: r.claimed_by }}
+                  className="size-10 grid place-items-center rounded-full bg-primary-soft text-primary"
+                  aria-label="Message volunteer"
+                >
+                  <MessageCircle className="size-5" />
+                </Link>
+              )}
             </div>
           </div>
+        )}
+
+        {iClaimed && r.requester_id !== profile.id && (
+          <Link
+            to="/messages/$peerId"
+            params={{ peerId: r.requester_id }}
+            className="mt-4 flex items-center gap-3 rounded-2xl bg-card border p-4 shadow-card"
+          >
+            <span className="size-10 grid place-items-center rounded-full bg-primary-soft text-primary">
+              <MessageCircle className="size-5" />
+            </span>
+            <div className="flex-1">
+              <p className="font-semibold">Message caregiver</p>
+              <p className="text-xs text-muted-foreground">Coordinate details with {r.requester?.name ?? "the caregiver"}.</p>
+            </div>
+          </Link>
         )}
 
         <div className="mt-8 space-y-2">
