@@ -148,6 +148,7 @@ function TaskDetail() {
   };
 
   const confirmVolunteer = async (volunteerId: string) => {
+    if (confirmingId) return;
     setConfirmingId(volunteerId);
     const { error: e1 } = await supabase
       .from("requests")
@@ -404,49 +405,55 @@ function TaskDetail() {
               </div>
             ) : (
               <ul className="space-y-2.5">
-                {pendingApps.map((a) => (
-                  <li
-                    key={a.id}
-                    className="rounded-2xl bg-card border p-3 shadow-card flex items-center gap-3"
-                  >
-                    <div className="size-12 rounded-full bg-primary-soft text-primary grid place-items-center font-semibold">
-                      {a.volunteer?.name?.charAt(0) ?? "?"}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="font-semibold truncate">{a.volunteer?.name ?? "Volunteer"}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {a.volunteer?.tasks_helped ?? 0} tasks completed
-                      </p>
-                    </div>
-                    <Link
-                      to="/profiles/$id"
-                      params={{ id: a.volunteer_id }}
-                      className="rounded-full bg-card border text-xs font-semibold px-3 py-2"
+                {pendingApps.map((a) => {
+                  const isConfirmingThisVolunteer = confirmingId === a.volunteer_id;
+
+                  return (
+                    <li
+                      key={a.id}
+                      className="rounded-2xl bg-card border p-3 shadow-card flex items-center gap-3"
                     >
-                      View
-                    </Link>
-                    <Link
-                      to="/messages/$peerId"
-                      params={{ peerId: a.volunteer_id }}
-                      className="size-9 grid place-items-center rounded-full bg-muted text-muted-foreground"
-                      aria-label="Message volunteer"
-                    >
-                      <MessageCircle className="size-4" />
-                    </Link>
-                    <button
-                      disabled={confirmingId !== null}
-                      onClick={() => confirmVolunteer(a.volunteer_id)}
-                      className="rounded-full bg-primary text-primary-foreground text-xs font-semibold px-3 py-2 shadow-elevated disabled:opacity-50 flex items-center gap-1"
-                    >
-                      {confirmingId === a.volunteer_id ? (
-                        <Loader2 className="size-3.5 animate-spin" />
-                      ) : (
-                        <UserCheck className="size-3.5" />
-                      )}
-                      Accept
-                    </button>
-                  </li>
-                ))}
+                      <div className="size-12 rounded-full bg-primary-soft text-primary grid place-items-center font-semibold">
+                        {a.volunteer?.name?.charAt(0) ?? "?"}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="font-semibold truncate">
+                          {a.volunteer?.name ?? "Volunteer"}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {a.volunteer?.tasks_helped ?? 0} tasks completed
+                        </p>
+                      </div>
+                      <Link
+                        to="/profiles/$id"
+                        params={{ id: a.volunteer_id }}
+                        className="rounded-full bg-card border text-xs font-semibold px-3 py-2"
+                      >
+                        View
+                      </Link>
+                      <Link
+                        to="/messages/$peerId"
+                        params={{ peerId: a.volunteer_id }}
+                        className="size-9 grid place-items-center rounded-full bg-muted text-muted-foreground"
+                        aria-label="Message volunteer"
+                      >
+                        <MessageCircle className="size-4" />
+                      </Link>
+                      <button
+                        disabled={isConfirmingThisVolunteer}
+                        onClick={() => confirmVolunteer(a.volunteer_id)}
+                        className="rounded-full bg-primary text-primary-foreground text-xs font-semibold px-3 py-2 shadow-elevated disabled:opacity-50 flex items-center gap-1"
+                      >
+                        {isConfirmingThisVolunteer ? (
+                          <Loader2 className="size-3.5 animate-spin" />
+                        ) : (
+                          <UserCheck className="size-3.5" />
+                        )}
+                        Accept
+                      </button>
+                    </li>
+                  );
+                })}
               </ul>
             )}
           </div>
