@@ -73,7 +73,7 @@ function SignupPage() {
                     : "bg-card border-border hover:border-primary/30"
                 }`}
               >
-                <p className="font-semibold capitalize">{r === "caregiver" ? "Get help" : "Volunteer"}</p>
+                <p className="font-semibold">{r === "caregiver" ? "I'm a Caregiver" : "I'm a Volunteer"}</p>
                 <p className="text-xs text-muted-foreground mt-1">
                   {r === "caregiver" ? "Post care tasks" : "Pick up tasks nearby"}
                 </p>
