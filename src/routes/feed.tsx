@@ -148,7 +148,7 @@ function Feed() {
                   : "bg-card text-muted-foreground border-border hover:text-foreground"
               }`}
             >
-              {t}
+              {t === "pending" ? "My Tasks" : t}
             </button>
           ))}
         </div>
@@ -157,7 +157,7 @@ function Feed() {
           {rows === null ? (
             <CardSkeleton />
           ) : visible.length === 0 ? (
-            <EmptyHint title={`No ${tab} tasks`} />
+            <EmptyHint title={`No ${tab === "pending" ? "open" : tab} tasks`} />
           ) : (
             <GroupedByCategory rows={visible} />
           )}
