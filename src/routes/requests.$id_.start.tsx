@@ -32,7 +32,20 @@ function StartPin() {
       .eq("id", id)
       .maybeSingle();
 
-    if (!req || pin !== req.start_pin) {
+    if (!req) {
+      setBusy(false);
+      toast.error("Task not found.");
+      return;
+    }
+
+    if (req.status !== "claimed" || req.claimed_by !== profile.id) {
+      setBusy(false);
+      toast.error("You haven't been confirmed for this task yet.");
+      nav({ to: "/requests/$id", params: { id } });
+      return;
+    }
+
+    if (pin !== req.start_pin) {
       setBusy(false);
       setPin("");
       toast.error("Incorrect PIN. Ask the care recipient to share the start PIN.");
@@ -40,23 +53,17 @@ function StartPin() {
     }
 
     const startedAt = new Date().toISOString();
-    const { error } =
-      req.status === "open" && !req.claimed_by
-        ? await supabase
-            .from("requests")
-            .update({ status: "claimed", started_at: startedAt, claimed_by: profile.id })
-            .eq("id", id)
-        : await supabase
-            .from("requests")
-            .update({ status: "claimed", started_at: startedAt })
-            .eq("id", id);
+    const { error } = await supabase
+      .from("requests")
+      .update({ started_at: startedAt })
+      .eq("id", id);
     if (error) {
       setBusy(false);
       toast.error(error.message);
       return;
     }
 
-    if (req.status === "open" && req.created_at) {
+    if (req.created_at) {
       await checkBadgesOnClaim(profile.id, req.created_at);
     }
 

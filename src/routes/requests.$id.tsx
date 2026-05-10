@@ -1,9 +1,10 @@
 import { createFileRoute, Link, redirect, useNavigate, useParams } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { useSession } from "@/lib/session";
 import { supabase } from "@/integrations/supabase/client";
 import { taskMeta } from "@/lib/tasks";
+import { toast } from "sonner";
 import {
   ArrowLeft,
   Calendar,
@@ -16,6 +17,9 @@ import {
   PlayCircle,
   Wallet,
   MessageCircle,
+  HandHeart,
+  UserCheck,
+  Hourglass,
 } from "lucide-react";
 
 export const Route = createFileRoute("/requests/$id")({
@@ -46,22 +50,52 @@ interface RequestRow {
   claimer: { name: string; avatar_url: string | null } | null;
 }
 
+interface Application {
+  id: string;
+  volunteer_id: string;
+  status: string;
+  created_at: string;
+  volunteer: { name: string; avatar_url: string | null; tasks_helped: number } | null;
+}
+
 function TaskDetail() {
   const { id } = useParams({ from: "/requests/$id" });
   const { profile } = useSession();
   const nav = useNavigate();
   const [r, setR] = useState<RequestRow | null>(null);
+  const [apps, setApps] = useState<Application[]>([]);
+  const [myApp, setMyApp] = useState<Application | null>(null);
+  const [busy, setBusy] = useState(false);
 
-  useEffect(() => {
-    supabase
+  const load = useCallback(async () => {
+    const { data } = await supabase
       .from("requests")
       .select(
         "*, requester:profiles!requests_requester_id_fkey(name, avatar_url), claimer:profiles!requests_claimed_by_fkey(name, avatar_url)",
       )
       .eq("id", id)
-      .maybeSingle()
-      .then(({ data }) => setR(data as RequestRow | null));
+      .maybeSingle();
+    setR(data as RequestRow | null);
   }, [id]);
+
+  const loadApps = useCallback(async () => {
+    if (!profile) return;
+    const { data } = await supabase
+      .from("applications")
+      .select(
+        "id, volunteer_id, status, created_at, volunteer:profiles!applications_volunteer_id_fkey(name, avatar_url, tasks_helped)",
+      )
+      .eq("request_id", id)
+      .order("created_at", { ascending: true });
+    const list = (data ?? []) as unknown as Application[];
+    setApps(list);
+    setMyApp(list.find((a) => a.volunteer_id === profile.id) ?? null);
+  }, [id, profile]);
+
+  useEffect(() => {
+    load();
+    loadApps();
+  }, [load, loadApps]);
 
   if (!r || !profile) {
     return (
@@ -81,6 +115,57 @@ function TaskDetail() {
   const isStarted = r.status === "claimed" && Boolean(r.started_at);
   const ageHours = (Date.now() - new Date(r.created_at).getTime()) / 36e5;
   const urgent = r.status === "open" && ageHours < 12;
+  const pendingApps = apps.filter((a) => a.status === "pending");
+
+  const apply = async () => {
+    setBusy(true);
+    const { error } = await supabase
+      .from("applications")
+      .insert({ request_id: id, volunteer_id: profile.id, status: "pending" });
+    setBusy(false);
+    if (error) return toast.error(error.message);
+    toast.success("Application sent!");
+    loadApps();
+  };
+
+  const withdraw = async () => {
+    if (!myApp) return;
+    setBusy(true);
+    const { error } = await supabase.from("applications").delete().eq("id", myApp.id);
+    setBusy(false);
+    if (error) return toast.error(error.message);
+    toast.success("Application withdrawn");
+    loadApps();
+  };
+
+  const confirmVolunteer = async (volunteerId: string) => {
+    setBusy(true);
+    const { error: e1 } = await supabase
+      .from("requests")
+      .update({ status: "claimed", claimed_by: volunteerId })
+      .eq("id", id);
+    if (e1) {
+      setBusy(false);
+      return toast.error(e1.message);
+    }
+    await supabase
+      .from("applications")
+      .update({ status: "accepted" })
+      .eq("request_id", id)
+      .eq("volunteer_id", volunteerId);
+    await supabase
+      .from("applications")
+      .update({ status: "declined" })
+      .eq("request_id", id)
+      .neq("volunteer_id", volunteerId)
+      .eq("status", "pending");
+    setBusy(false);
+    toast.success("Volunteer confirmed");
+    load();
+    loadApps();
+  };
+
+
 
   const back = isVolunteer ? "/volunteer" : "/dashboard";
 
@@ -237,16 +322,102 @@ function TaskDetail() {
           </Link>
         )}
 
+        {/* Caregiver: applicants list while task is open */}
+        {isMine && r.status === "open" && (
+          <div className="mt-5">
+            <h3 className="mb-3 text-base font-bold flex items-center gap-2">
+              <HandHeart className="size-4 text-primary" />
+              Volunteer applications
+              <span className="ml-auto text-xs font-medium text-muted-foreground">
+                {pendingApps.length} {pendingApps.length === 1 ? "applicant" : "applicants"}
+              </span>
+            </h3>
+            {pendingApps.length === 0 ? (
+              <div className="rounded-2xl border border-dashed bg-card/60 p-6 text-center">
+                <p className="font-semibold">Waiting for volunteers</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  You'll see applicants here as they apply.
+                </p>
+              </div>
+            ) : (
+              <ul className="space-y-2.5">
+                {pendingApps.map((a) => (
+                  <li
+                    key={a.id}
+                    className="rounded-2xl bg-card border p-3 shadow-card flex items-center gap-3"
+                  >
+                    <div className="size-12 rounded-full bg-primary-soft text-primary grid place-items-center font-semibold">
+                      {a.volunteer?.name?.charAt(0) ?? "?"}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-semibold truncate">{a.volunteer?.name ?? "Volunteer"}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {a.volunteer?.tasks_helped ?? 0} tasks completed
+                      </p>
+                    </div>
+                    <Link
+                      to="/messages/$peerId"
+                      params={{ peerId: a.volunteer_id }}
+                      className="size-9 grid place-items-center rounded-full bg-muted text-muted-foreground"
+                      aria-label="Message volunteer"
+                    >
+                      <MessageCircle className="size-4" />
+                    </Link>
+                    <button
+                      disabled={busy}
+                      onClick={() => confirmVolunteer(a.volunteer_id)}
+                      className="rounded-full bg-primary text-primary-foreground text-xs font-semibold px-3 py-2 shadow-elevated disabled:opacity-50 flex items-center gap-1"
+                    >
+                      <UserCheck className="size-3.5" /> Confirm
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
+
         <div className="mt-8 space-y-2">
-          {isVolunteer && r.status === "open" && (
+          {/* Volunteer: open task — apply or pending */}
+          {isVolunteer && r.status === "open" && !myApp && (
             <button
-              onClick={() => nav({ to: "/requests/$id/start", params: { id } })}
-              className="w-full rounded-full bg-primary text-primary-foreground py-4 font-semibold shadow-elevated flex items-center justify-center gap-2"
+              disabled={busy}
+              onClick={apply}
+              className="w-full rounded-full bg-primary text-primary-foreground py-4 font-semibold shadow-elevated flex items-center justify-center gap-2 disabled:opacity-60"
             >
-              <PlayCircle className="size-5" /> Accept & Start with PIN
+              <HandHeart className="size-5" /> Apply for this task
             </button>
           )}
 
+          {isVolunteer && r.status === "open" && myApp && (
+            <>
+              <div className="rounded-2xl bg-warning/15 border border-warning/40 p-4 flex items-center gap-3">
+                <Hourglass className="size-5 text-warning-foreground" />
+                <div className="flex-1 text-sm">
+                  <p className="font-semibold">Application pending</p>
+                  <p className="text-xs text-muted-foreground">
+                    The caregiver will confirm a volunteer soon.
+                  </p>
+                </div>
+              </div>
+              <button
+                disabled={busy}
+                onClick={withdraw}
+                className="w-full rounded-full bg-card border py-3.5 font-semibold disabled:opacity-50"
+              >
+                Withdraw application
+              </button>
+            </>
+          )}
+
+          {/* Volunteer not selected after caregiver confirmed */}
+          {isVolunteer && r.status === "claimed" && !iClaimed && myApp && (
+            <div className="rounded-2xl bg-muted p-4 text-center text-sm text-muted-foreground">
+              Another volunteer was selected for this task. Thanks for offering to help!
+            </div>
+          )}
+
+          {/* Volunteer confirmed: start task */}
           {isVolunteer && r.status === "claimed" && iClaimed && !isStarted && (
             <button
               onClick={() => nav({ to: "/requests/$id/start", params: { id } })}
