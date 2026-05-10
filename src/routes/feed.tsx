@@ -1,10 +1,11 @@
 import { createFileRoute, redirect, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AppShell, PageHeader } from "@/components/AppShell";
 import { useSession } from "@/lib/session";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, Plus } from "lucide-react";
 import { RequestCard, CardSkeleton, EmptyHint } from "./dashboard";
+import { TASK_TYPES, taskMeta, type TaskType } from "@/lib/tasks";
 
 export const Route = createFileRoute("/feed")({
   beforeLoad: async () => {
