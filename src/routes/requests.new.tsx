@@ -167,9 +167,7 @@ function NewRequest() {
                   >
                     <Icon className="size-5" strokeWidth={2.3} />
                   </span>
-                  <span className={`relative text-xs font-medium ${active ? "text-white/80" : ""}`}>
-                    {t.label}
-                  </span>
+                  <span className="relative text-xs font-medium">{t.label}</span>
                 </button>
               );
             })}

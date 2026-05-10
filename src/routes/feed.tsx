@@ -29,6 +29,7 @@ interface RequestRow {
   claimed_by: string | null;
   requester_id: string;
   payment_amount?: number | null;
+  priority?: string | null;
   requester?: { name: string } | null;
   claimer?: { name: string } | null;
 }
@@ -167,11 +168,12 @@ function Feed() {
   );
 }
 
+type SortKey = "type" | "date" | "priority_low_high" | "priority_high_low";
+
 function GroupedByCategory({ rows, role }: { rows: RequestRow[]; role: string }) {
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
-  const [sort, setSort] = useState<"type" | "date">("type");
+  const [sort, setSort] = useState<SortKey>(role === "caregiver" ? "date" : "type");
 
-  // Group by task_type, preserving TASK_TYPES order
   const groups = TASK_TYPES.map((t) => ({
     type: t.value as TaskType,
     label: t.label,
@@ -181,61 +183,49 @@ function GroupedByCategory({ rows, role }: { rows: RequestRow[]; role: string })
 
   if (groups.length === 0) return null;
 
-  const isVolunteer = role === "volunteer";
+  const priRank = (p?: string | null) =>
+    p === "high" ? 2 : p === "normal" || !p ? 1 : 0;
   const sortedByDate = [...rows].sort(
     (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
   );
+  const sortedByPriAsc = [...rows].sort(
+    (a, b) =>
+      priRank(a.priority) - priRank(b.priority) ||
+      new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+  );
+  const sortedByPriDesc = [...sortedByPriAsc].reverse();
+
+  const flatList =
+    sort === "date"
+      ? sortedByDate
+      : sort === "priority_low_high"
+        ? sortedByPriAsc
+        : sort === "priority_high_low"
+          ? sortedByPriDesc
+          : null;
 
   return (
     <div>
-      {isVolunteer ? (
-        <div className="rounded-2xl bg-card border p-3 shadow-card flex items-center gap-3">
-          <label htmlFor="sort-by" className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
-            Sort by
-          </label>
-          <select
-            id="sort-by"
-            value={sort}
-            onChange={(e) => setSort(e.target.value as "type" | "date")}
-            className="flex-1 rounded-lg border bg-background px-3 py-2 text-sm font-medium"
-          >
-            <option value="type">Type</option>
-            <option value="date">Post date</option>
-          </select>
-        </div>
-      ) : (
-        <div className="rounded-2xl bg-card border p-4 shadow-card">
-          <p className="text-xs font-semibold tracking-wider text-muted-foreground uppercase mb-3">
-            Summary
-          </p>
-          <div className="grid grid-cols-3 gap-2.5">
-            {groups.map((g) => {
-              const style = taskBadgeStyle(g.type);
-              const Icon = g.Icon;
-              return (
-                <button
-                  key={g.type}
-                  type="button"
-                  onClick={() => sectionRefs.current[g.type]?.scrollIntoView({ behavior: "smooth", block: "start" })}
-                  className={`relative overflow-hidden flex flex-col items-center gap-1.5 rounded-xl border ${style.glass} p-3 transition-transform active:scale-[0.98] backdrop-blur-xl`}
-                >
-                  <span className={`absolute -right-5 -top-6 size-16 rounded-full ${style.glow} blur-2xl`} />
-                  <span className={`relative size-9 grid place-items-center rounded-lg ${style.icon}`}>
-                    <Icon className="size-4" strokeWidth={2.3} />
-                  </span>
-                  <p className="relative text-lg font-bold leading-none">{g.items.length}</p>
-                  <p className="relative text-[11px] font-medium text-white/70 leading-tight">{g.label}</p>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
+      <div className="rounded-2xl bg-card border p-3 shadow-card flex items-center gap-3">
+        <label htmlFor="sort-by" className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+          Sort by
+        </label>
+        <select
+          id="sort-by"
+          value={sort}
+          onChange={(e) => setSort(e.target.value as SortKey)}
+          className="flex-1 rounded-lg border bg-background px-3 py-2 text-sm font-medium"
+        >
+          <option value="type">Type</option>
+          <option value="date">Post date</option>
+          <option value="priority_low_high">Priority (low to high)</option>
+          <option value="priority_high_low">Priority (high to low)</option>
+        </select>
+      </div>
 
-      {/* Sections */}
-      {isVolunteer && sort === "date" ? (
+      {flatList ? (
         <div className="mt-5 space-y-3">
-          {sortedByDate.map((r) => (
+          {flatList.map((r) => (
             <RequestCard key={r.id} r={r} />
           ))}
         </div>

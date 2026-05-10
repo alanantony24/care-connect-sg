@@ -32,6 +32,7 @@ function SignupPage() {
   const [emergency, setEmergency] = useState("");
   const [notes, setNotes] = useState("");
   const [certFile, setCertFile] = useState<File | null>(null);
+  const [certName, setCertName] = useState("");
 
   const [busy, setBusy] = useState(false);
 
@@ -226,6 +227,12 @@ function SignupPage() {
               <span className="block text-sm font-medium mb-1.5">
                 Professional certifications (optional)
               </span>
+              <input
+                value={certName}
+                onChange={(e) => setCertName(e.target.value)}
+                className="kinput mb-2"
+                placeholder="Name (e.g. First Aid Certificate)"
+              />
               <label className="flex items-center gap-3 rounded-2xl border bg-card p-3 cursor-pointer hover:border-primary/40">
                 {certFile ? (
                   <FileCheck className="size-5 text-primary" />
