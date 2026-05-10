@@ -230,13 +230,17 @@ export function RequestCard({ r }: { r: RequestRow & { requester?: { name: strin
             </span>
           </div>
           <p className="text-xs text-muted-foreground mt-1 capitalize">{meta.label}</p>
-          <div className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground flex-wrap">
-            <MapPin className="size-3.5 shrink-0" />
-            <span className="truncate">{r.location}</span>
-            <span>·</span>
-            <span className="whitespace-nowrap">{formatDateFriendly(r.date_needed)}</span>
-            <span>·</span>
-            <span className="whitespace-nowrap">{formatTimeFriendly(r.time_needed)}</span>
+          <div className="mt-3 space-y-1.5 text-xs text-muted-foreground">
+            <div className="flex items-center gap-1.5">
+              <MapPin className="size-3.5 shrink-0" />
+              <span className="truncate">{r.location}</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Calendar className="size-3.5 shrink-0" />
+              <span className="truncate">
+                {formatDateFriendly(r.date_needed)} · {formatTimeFriendly(r.time_needed)}
+              </span>
+            </div>
           </div>
           {r.payment_amount != null && Number(r.payment_amount) > 0 && (
             <div className="mt-2 inline-flex items-center gap-1 rounded-full bg-primary-soft text-primary px-2.5 py-1 text-xs font-semibold">
