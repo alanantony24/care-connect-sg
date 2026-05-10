@@ -1,4 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { useEffect } from "react";
 import {
   Outlet,
   Link,
@@ -103,6 +104,15 @@ function RootShell({ children }: { children: React.ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    document.documentElement.classList.toggle(
+      "simple-mode",
+      localStorage.getItem("komunity:simple-mode") === "1",
+    );
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <SessionProvider>

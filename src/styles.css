@@ -144,12 +144,78 @@
   --shadow-elevated: 0 10px 30px -10px oklch(0 0 0 / 0.5);
 }
 
+:root.simple-mode {
+  --background: oklch(0.995 0.002 150);
+  --foreground: oklch(0.12 0.018 150);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.12 0.018 150);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.12 0.018 150);
+  --primary: oklch(0.32 0.13 155);
+  --primary-foreground: oklch(1 0 0);
+  --primary-soft: oklch(0.88 0.08 155);
+  --primary-soft-foreground: oklch(0.22 0.12 155);
+  --secondary: oklch(0.93 0.015 150);
+  --secondary-foreground: oklch(0.14 0.025 150);
+  --muted: oklch(0.92 0.012 150);
+  --muted-foreground: oklch(0.32 0.02 150);
+  --accent: oklch(0.87 0.08 155);
+  --accent-foreground: oklch(0.18 0.11 155);
+  --success: oklch(0.45 0.14 155);
+  --success-foreground: oklch(1 0 0);
+  --warning: oklch(0.68 0.15 78);
+  --warning-foreground: oklch(0.14 0.04 58);
+  --destructive: oklch(0.5 0.21 25);
+  --destructive-foreground: oklch(1 0 0);
+  --border: oklch(0.72 0.018 150);
+  --input: oklch(0.84 0.015 150);
+  --ring: oklch(0.28 0.14 155);
+  --shadow-card:
+    0 2px 4px oklch(0.12 0.04 150 / 0.1), 0 10px 24px -12px oklch(0.12 0.04 150 / 0.22);
+  --shadow-elevated: 0 18px 36px -18px oklch(0.1 0.04 150 / 0.35);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root.simple-mode:not(.light) {
+    --background: oklch(0.1 0.012 150);
+    --foreground: oklch(0.99 0.002 150);
+    --card: oklch(0.16 0.018 150);
+    --card-foreground: oklch(0.99 0.002 150);
+    --popover: oklch(0.16 0.018 150);
+    --popover-foreground: oklch(0.99 0.002 150);
+    --primary: oklch(0.78 0.15 155);
+    --primary-foreground: oklch(0.08 0.018 150);
+    --primary-soft: oklch(0.25 0.07 155);
+    --primary-soft-foreground: oklch(0.9 0.12 155);
+    --secondary: oklch(0.22 0.02 150);
+    --secondary-foreground: oklch(0.99 0.002 150);
+    --muted: oklch(0.22 0.018 150);
+    --muted-foreground: oklch(0.82 0.012 150);
+    --accent: oklch(0.28 0.06 155);
+    --accent-foreground: oklch(0.98 0.005 150);
+    --success: oklch(0.76 0.15 155);
+    --success-foreground: oklch(0.08 0.018 150);
+    --warning: oklch(0.84 0.14 80);
+    --warning-foreground: oklch(0.1 0.04 60);
+    --destructive: oklch(0.72 0.21 25);
+    --destructive-foreground: oklch(0.08 0.018 150);
+    --border: oklch(0.46 0.025 150);
+    --input: oklch(0.38 0.022 150);
+    --ring: oklch(0.84 0.15 155);
+    --shadow-card: 0 2px 16px -4px oklch(0 0 0 / 0.6);
+    --shadow-elevated: 0 14px 36px -14px oklch(0 0 0 / 0.75);
+  }
+}
+
 @layer base {
   * {
     border-color: var(--color-border);
   }
   html {
     -webkit-text-size-adjust: 100%;
+  }
+  html.simple-mode {
+    font-size: 18px;
   }
   body {
     background-color: var(--color-background);
@@ -175,6 +241,26 @@
   h2,
   h3 {
     letter-spacing: -0.015em;
+  }
+  :where(button, a, input, select, textarea):focus-visible {
+    outline: 3px solid var(--ring);
+    outline-offset: 3px;
+  }
+  html.simple-mode :where(button, input, select, textarea) {
+    min-height: 3rem;
+  }
+  html.simple-mode :where(button, a) {
+    font-weight: 700;
+  }
+  html.simple-mode nav a {
+    min-height: 4.75rem;
+  }
+  html.simple-mode nav svg {
+    width: 1.45rem;
+    height: 1.45rem;
+  }
+  html.simple-mode nav span:last-child {
+    font-size: 0.78rem;
   }
 }
 

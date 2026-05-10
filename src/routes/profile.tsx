@@ -16,6 +16,8 @@ import {
   CheckCircle2,
   Camera,
   LifeBuoy,
+  Accessibility,
+  Volume2,
 } from "lucide-react";
 import { BADGE_DEFS, type BadgeType } from "@/lib/badges";
 import { SENIORS } from "@/lib/seniors";
@@ -62,6 +64,7 @@ function ProfilePage() {
   const [badges, setBadges] = useState<{ badge_type: string }[] | null>(null);
   const [reviews, setReviews] = useState<Review[] | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [simpleMode, setSimpleMode] = useState(false);
 
   useEffect(() => {
     if (!profile) return;
@@ -80,6 +83,11 @@ function ProfilePage() {
       .limit(5)
       .then(({ data }) => setReviews((data ?? []) as unknown as Review[]));
   }, [profile]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    setSimpleMode(localStorage.getItem("komunity:simple-mode") === "1");
+  }, []);
 
   if (!profile) {
     return (
@@ -104,6 +112,24 @@ function ProfilePage() {
   };
 
   const onPickAvatar = () => fileRef.current?.click();
+
+  const toggleSimpleMode = () => {
+    const next = !simpleMode;
+    setSimpleMode(next);
+    localStorage.setItem("komunity:simple-mode", next ? "1" : "0");
+    document.documentElement.classList.toggle("simple-mode", next);
+
+    if ("speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(
+        next
+          ? "Simple Mode is on. Text is larger, contrast is stronger, and buttons are easier to tap."
+          : "Simple Mode is off.",
+      );
+      utterance.rate = 0.9;
+      window.speechSynthesis.speak(utterance);
+    }
+  };
 
   const onAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -335,6 +361,44 @@ function ProfilePage() {
             </p>
           </div>
           <ChevronRight className="size-4 text-muted-foreground shrink-0" />
+        </button>
+
+        <button
+          type="button"
+          onClick={toggleSimpleMode}
+          aria-pressed={simpleMode}
+          className={`mt-3 w-full rounded-2xl border p-4 shadow-card flex items-center gap-3 text-left active:scale-[0.99] transition-transform ${
+            simpleMode
+              ? "bg-primary text-primary-foreground border-primary"
+              : "bg-card border-border"
+          }`}
+        >
+          <span
+            className={`size-11 rounded-full grid place-items-center shrink-0 ${
+              simpleMode
+                ? "bg-primary-foreground/15 text-primary-foreground"
+                : "bg-primary-soft text-primary"
+            }`}
+          >
+            {simpleMode ? <Volume2 className="size-5" /> : <Accessibility className="size-5" />}
+          </span>
+          <div className="flex-1 min-w-0">
+            <p className="font-semibold">Accessibility mode</p>
+            <p
+              className={`text-sm ${simpleMode ? "text-primary-foreground/85" : "text-muted-foreground"}`}
+            >
+              {simpleMode
+                ? "Simple Mode is on: larger text, stronger contrast, and audio prompts."
+                : "Turn on Simple Mode for larger controls, high contrast, and spoken feedback."}
+            </p>
+          </div>
+          <span
+            className={`rounded-full px-3 py-1 text-xs font-semibold ${
+              simpleMode ? "bg-primary-foreground text-primary" : "bg-muted text-muted-foreground"
+            }`}
+          >
+            {simpleMode ? "On" : "Off"}
+          </span>
         </button>
 
         {/* Logout */}
