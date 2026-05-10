@@ -1,26 +1,97 @@
 import {
-  ShoppingBasket,
-  Car,
-  Heart,
-  Home,
+  ShoppingBag,
+  CarFront,
+  HeartHandshake,
+  HousePlus,
   Footprints,
-  Sparkles,
+  WandSparkles,
   type LucideIcon,
 } from "lucide-react";
 
 export type TaskType = "grocery" | "transport" | "companionship" | "household" | "walk" | "errand";
 
 export const TASK_TYPES: { value: TaskType; label: string; icon: LucideIcon }[] = [
-  { value: "grocery", label: "Grocery", icon: ShoppingBasket },
-  { value: "transport", label: "Transport", icon: Car },
-  { value: "companionship", label: "Companionship", icon: Heart },
-  { value: "household", label: "Household", icon: Home },
+  { value: "grocery", label: "Grocery", icon: ShoppingBag },
+  { value: "transport", label: "Transport", icon: CarFront },
+  { value: "companionship", label: "Companionship", icon: HeartHandshake },
+  { value: "household", label: "Household", icon: HousePlus },
   { value: "walk", label: "Walk", icon: Footprints },
-  { value: "errand", label: "Errand", icon: Sparkles },
+  { value: "errand", label: "Errand", icon: WandSparkles },
 ];
 
 export function taskMeta(t: string) {
   return TASK_TYPES.find((x) => x.value === t) ?? TASK_TYPES[0];
+}
+
+export const TASK_BADGE_STYLES: Record<
+  TaskType,
+  {
+    glass: string;
+    icon: string;
+    glow: string;
+    text: string;
+    compact: string;
+    section: string;
+  }
+> = {
+  grocery: {
+    glass:
+      "border-emerald-200/20 bg-gradient-to-br from-emerald-950/90 via-teal-950/80 to-slate-950/85 text-emerald-50",
+    icon: "bg-white/12 text-emerald-100 ring-1 ring-emerald-100/20 shadow-emerald-950/30",
+    glow: "bg-emerald-400/25",
+    text: "text-emerald-100",
+    compact: "border-emerald-200/25 bg-emerald-950/75 text-emerald-100",
+    section: "bg-emerald-950/80 text-emerald-100 ring-1 ring-emerald-200/20",
+  },
+  transport: {
+    glass:
+      "border-sky-200/20 bg-gradient-to-br from-sky-950/90 via-blue-950/80 to-slate-950/85 text-sky-50",
+    icon: "bg-white/12 text-sky-100 ring-1 ring-sky-100/20 shadow-sky-950/30",
+    glow: "bg-sky-400/25",
+    text: "text-sky-100",
+    compact: "border-sky-200/25 bg-sky-950/75 text-sky-100",
+    section: "bg-sky-950/80 text-sky-100 ring-1 ring-sky-200/20",
+  },
+  companionship: {
+    glass:
+      "border-rose-200/20 bg-gradient-to-br from-rose-950/90 via-fuchsia-950/75 to-slate-950/85 text-rose-50",
+    icon: "bg-white/12 text-rose-100 ring-1 ring-rose-100/20 shadow-rose-950/30",
+    glow: "bg-rose-400/25",
+    text: "text-rose-100",
+    compact: "border-rose-200/25 bg-rose-950/75 text-rose-100",
+    section: "bg-rose-950/80 text-rose-100 ring-1 ring-rose-200/20",
+  },
+  household: {
+    glass:
+      "border-violet-200/20 bg-gradient-to-br from-violet-950/90 via-purple-950/80 to-slate-950/85 text-violet-50",
+    icon: "bg-white/12 text-violet-100 ring-1 ring-violet-100/20 shadow-violet-950/30",
+    glow: "bg-violet-400/25",
+    text: "text-violet-100",
+    compact: "border-violet-200/25 bg-violet-950/75 text-violet-100",
+    section: "bg-violet-950/80 text-violet-100 ring-1 ring-violet-200/20",
+  },
+  walk: {
+    glass:
+      "border-amber-200/20 bg-gradient-to-br from-amber-950/90 via-orange-950/80 to-slate-950/85 text-amber-50",
+    icon: "bg-white/12 text-amber-100 ring-1 ring-amber-100/20 shadow-amber-950/30",
+    glow: "bg-amber-400/25",
+    text: "text-amber-100",
+    compact: "border-amber-200/25 bg-amber-950/75 text-amber-100",
+    section: "bg-amber-950/80 text-amber-100 ring-1 ring-amber-200/20",
+  },
+  errand: {
+    glass:
+      "border-indigo-200/20 bg-gradient-to-br from-indigo-950/90 via-cyan-950/70 to-slate-950/85 text-indigo-50",
+    icon: "bg-white/12 text-indigo-100 ring-1 ring-indigo-100/20 shadow-indigo-950/30",
+    glow: "bg-indigo-400/25",
+    text: "text-indigo-100",
+    compact: "border-indigo-200/25 bg-indigo-950/75 text-indigo-100",
+    section: "bg-indigo-950/80 text-indigo-100 ring-1 ring-indigo-200/20",
+  },
+};
+
+export function taskBadgeStyle(t: string) {
+  return TASK_BADGE_STYLES[taskMeta(t).value];
 }
 
 export const MAX_TASK_PAYMENT = 15;

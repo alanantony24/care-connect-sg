@@ -5,7 +5,7 @@ import { useSession } from "@/lib/session";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, Plus } from "lucide-react";
 import { RequestCard, CardSkeleton, EmptyHint } from "./dashboard";
-import { TASK_TYPES, type TaskType } from "@/lib/tasks";
+import { TASK_TYPES, taskBadgeStyle, type TaskType } from "@/lib/tasks";
 
 export const Route = createFileRoute("/feed")({
   beforeLoad: async () => {
@@ -193,19 +193,25 @@ function GroupedByCategory({ rows }: { rows: RequestRow[] }) {
         </p>
         <div className="grid grid-cols-3 gap-2.5">
           {groups.map((g) => {
+            const style = taskBadgeStyle(g.type);
             const Icon = g.Icon;
             return (
               <button
                 key={g.type}
                 type="button"
                 onClick={() => scrollTo(g.type)}
-                className="flex flex-col items-center gap-1.5 rounded-xl bg-primary-soft/60 hover:bg-primary-soft p-3 transition-colors active:scale-[0.98]"
+                className={`relative overflow-hidden flex flex-col items-center gap-1.5 rounded-xl border ${style.glass} p-3 transition-transform active:scale-[0.98] backdrop-blur-xl`}
               >
-                <span className="size-9 grid place-items-center rounded-lg bg-card text-primary">
-                  <Icon className="size-4" />
+                <span
+                  className={`absolute -right-5 -top-6 size-16 rounded-full ${style.glow} blur-2xl`}
+                />
+                <span
+                  className={`relative size-9 grid place-items-center rounded-lg ${style.icon}`}
+                >
+                  <Icon className="size-4" strokeWidth={2.3} />
                 </span>
-                <p className="text-lg font-bold leading-none text-primary">{g.items.length}</p>
-                <p className="text-[11px] font-medium text-muted-foreground leading-tight">
+                <p className="relative text-lg font-bold leading-none">{g.items.length}</p>
+                <p className="relative text-[11px] font-medium text-white/70 leading-tight">
                   {g.label}
                 </p>
               </button>
@@ -217,6 +223,7 @@ function GroupedByCategory({ rows }: { rows: RequestRow[] }) {
       {/* Grouped sections */}
       <div className="mt-5 space-y-6">
         {groups.map((g) => {
+          const style = taskBadgeStyle(g.type);
           const Icon = g.Icon;
           return (
             <section
@@ -227,8 +234,8 @@ function GroupedByCategory({ rows }: { rows: RequestRow[] }) {
               className="scroll-mt-20"
             >
               <div className="flex items-center gap-2 mb-3">
-                <span className="size-7 grid place-items-center rounded-lg bg-primary-soft text-primary">
-                  <Icon className="size-4" />
+                <span className={`size-7 grid place-items-center rounded-lg ${style.section}`}>
+                  <Icon className="size-4" strokeWidth={2.3} />
                 </span>
                 <h3 className="text-sm font-bold">{g.label}</h3>
                 <span className="text-xs text-muted-foreground">({g.items.length})</span>
