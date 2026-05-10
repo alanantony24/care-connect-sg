@@ -69,7 +69,10 @@ function PublicProfile() {
     <div className="min-h-screen bg-muted/30 pb-10">
       <header className="container-app pt-5 pb-3 flex items-center justify-between">
         <button
-          onClick={() => nav({ to: ".." as any })}
+          onClick={() => {
+            if (typeof window !== "undefined" && window.history.length > 1) window.history.back();
+            else nav({ to: "/feed" });
+          }}
           className="size-10 grid place-items-center rounded-full bg-card border"
           aria-label="Back"
         >
