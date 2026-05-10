@@ -27,7 +27,7 @@ export const Route = createFileRoute("/seniors/$id")({
 });
 
 function SeniorDetail() {
-  const { senior } = Route.useLoaderData();
+  const { senior } = Route.useLoaderData() as { senior: import("@/lib/seniors").Senior };
   const nav = useNavigate();
 
   return (
