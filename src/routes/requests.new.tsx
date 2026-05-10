@@ -308,7 +308,7 @@ function NewRequest() {
               value={payment}
               onChange={(e) => setPayment(String(clampTaskPayment(Number(e.target.value) || 0)))}
               className="kinput kinput-money"
-              placeholder="10"
+              placeholder="0"
             />
           </div>
           <div className="mt-2 space-y-1 text-xs text-muted-foreground">
