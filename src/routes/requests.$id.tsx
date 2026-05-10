@@ -50,12 +50,6 @@ interface RequestRow {
   claimer: { name: string; avatar_url: string | null } | null;
 }
 
-function TaskDetail() {
-  const { id } = useParams({ from: "/requests/$id" });
-  const { profile } = useSession();
-  const nav = useNavigate();
-  const [r, setR] = useState<RequestRow | null>(null);
-
 interface Application {
   id: string;
   volunteer_id: string;
