@@ -11,8 +11,12 @@ import {
   paymentGuidance,
   platformFeeFor,
   volunteerPayoutFor,
+  PRIORITY_META,
+  type Priority,
   type TaskType,
 } from "@/lib/tasks";
+import { SENIORS } from "@/lib/seniors";
+import { LocationPicker, type PickedLocation } from "@/components/LocationPicker";
 import { toast } from "sonner";
 import { Style } from "./login";
 
@@ -28,14 +32,16 @@ export const Route = createFileRoute("/requests/new")({
 function NewRequest() {
   const { profile } = useSession();
   const nav = useNavigate();
+  const today = new Date().toISOString().split("T")[0];
+  const [recipientId, setRecipientId] = useState<string>(SENIORS[0]?.id ?? "");
   const [title, setTitle] = useState("");
   const [taskType, setTaskType] = useState<TaskType>("grocery");
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
-  const [location, setLocation] = useState("");
+  const [location, setLocation] = useState<PickedLocation | null>(null);
   const [notes, setNotes] = useState("");
-  const [payment, setPayment] = useState("10");
-  const [priority, setPriority] = useState<"low" | "normal" | "high">("normal");
+  const [payment, setPayment] = useState("0");
+  const [priority, setPriority] = useState<Priority>("normal");
   const [busy, setBusy] = useState(false);
   const suggestedPayment = paymentGuidance(taskType);
   const paymentInputRef = useRef<HTMLInputElement>(null);
@@ -55,15 +61,18 @@ function NewRequest() {
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!profile) return;
-    const finalPayment = clampTaskPayment(Number(payment) || 0);
+    if (!location) return toast.error("Please pick a location on the map");
     setBusy(true);
+    const recipient = SENIORS.find((s) => s.id === recipientId);
+    const recipientNote = recipient ? `For ${recipient.name}.` : "";
+    const fullNotes = [recipientNote, notes].filter(Boolean).join("\n\n") || null;
     const { error } = await supabase.from("requests").insert({
       title,
       task_type: taskType,
       date_needed: date,
       time_needed: time,
-      location,
-      notes: notes || null,
+      location: location.label,
+      notes: fullNotes,
       payment_amount: Number(payment) || 0,
       priority,
       requester_id: profile.id,
