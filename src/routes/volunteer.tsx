@@ -1,11 +1,12 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { createFileRoute, Link, redirect } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { AppShell, PageHeader } from "@/components/AppShell";
 import { MessagesFab } from "@/components/MessagesFab";
 import { useSession } from "@/lib/session";
 import { supabase } from "@/integrations/supabase/client";
-import { Bell, Loader2, Award, Heart } from "lucide-react";
-import { RequestCard, CardSkeleton, EmptyHint } from "./dashboard";
+import { Bell, Loader2, Award, Heart, ChevronRight } from "lucide-react";
+import { RequestCard, CardSkeleton } from "./dashboard";
+import { TASK_TYPES } from "@/lib/tasks";
 import { getGreeting } from "@/lib/format";
 
 export const Route = createFileRoute("/volunteer")({
