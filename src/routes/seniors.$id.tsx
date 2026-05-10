@@ -1,7 +1,8 @@
 import { createFileRoute, Link, redirect, useNavigate, notFound } from "@tanstack/react-router";
-import { ArrowLeft, Phone, Calendar, MapPin, Heart, AlertTriangle, FileText } from "lucide-react";
+import { ArrowLeft, Phone, Heart, AlertTriangle, FileText, Pencil, Accessibility } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { getSenior } from "@/lib/seniors";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/seniors/$id")({
   beforeLoad: async () => {
@@ -42,7 +43,13 @@ function SeniorDetail() {
           <ArrowLeft className="size-5" />
         </button>
         <p className="text-primary font-bold tracking-tight">Komunity</p>
-        <div className="size-10" />
+        <button
+          onClick={() => toast.info("Editing coming soon")}
+          className="size-10 grid place-items-center rounded-full bg-card border"
+          aria-label="Edit"
+        >
+          <Pencil className="size-4" />
+        </button>
       </header>
 
       <div className="container-app">
@@ -53,24 +60,18 @@ function SeniorDetail() {
               {senior.name.charAt(0)}
             </div>
             <h1 className="mt-3 text-2xl font-bold">{senior.name}</h1>
-            <p className="text-sm text-muted-foreground">
-              {senior.age} years · {senior.relation}
-            </p>
+            <p className="text-sm text-muted-foreground">{senior.relation}</p>
+
+            <div className="mt-4 grid grid-cols-3 gap-2 w-full">
+              <Stat label="Sex" value={senior.sex} />
+              <Stat label="Age" value={`${senior.age}`} />
+              <Stat label="Blood Type" value={senior.bloodType} />
+            </div>
           </div>
         </div>
 
-        <div className="mt-4 rounded-2xl bg-card border shadow-card divide-y">
-          <Row icon={<Calendar className="size-5" />} label="Preferred times" text={senior.preferredTimes} />
-          <Row icon={<MapPin className="size-5" />} label="Home address" text={senior.address} />
-          <Row
-            icon={<Phone className="size-5" />}
-            label="Emergency contact"
-            text={`${senior.emergencyContact.name} · ${senior.emergencyContact.phone}`}
-          />
-        </div>
-
         <h3 className="mt-6 mb-3 text-base font-bold flex items-center gap-2">
-          <Heart className="size-4 text-primary" /> Health & accessibility
+          <Heart className="size-4 text-primary" /> Health information
         </h3>
         <div className="rounded-2xl bg-card border shadow-card p-4">
           <ul className="space-y-2 text-sm">
@@ -84,10 +85,32 @@ function SeniorDetail() {
         </div>
 
         <h3 className="mt-6 mb-3 text-base font-bold flex items-center gap-2">
+          <Accessibility className="size-4 text-primary" /> Accessibility
+        </h3>
+        <div className="rounded-2xl bg-card border shadow-card p-4">
+          <ul className="space-y-2 text-sm">
+            {senior.accessibility.map((c) => (
+              <li key={c} className="flex items-start gap-2">
+                <span className="size-1.5 rounded-full bg-primary mt-2 shrink-0" />
+                <span>{c}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <h3 className="mt-6 mb-3 text-base font-bold flex items-center gap-2">
           <FileText className="size-4 text-primary" /> Notes for volunteers
         </h3>
         <div className="rounded-2xl bg-card border shadow-card p-4">
           <p className="text-sm leading-6 text-muted-foreground">{senior.notes}</p>
+        </div>
+
+        <h3 className="mt-6 mb-3 text-base font-bold flex items-center gap-2">
+          <Phone className="size-4 text-primary" /> Emergency contact
+        </h3>
+        <div className="rounded-2xl bg-card border shadow-card p-4 text-sm">
+          <p className="font-semibold">{senior.emergencyContact.name}</p>
+          <p className="text-muted-foreground">{senior.emergencyContact.phone}</p>
         </div>
 
         <div className="mt-6 rounded-2xl bg-warning/10 border border-warning/40 p-4 flex gap-3">
@@ -108,16 +131,11 @@ function SeniorDetail() {
   );
 }
 
-function Row({ icon, label, text }: { icon: React.ReactNode; label: string; text: string }) {
+function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-center gap-4 p-4">
-      <span className="size-10 grid place-items-center rounded-xl bg-primary-soft text-primary">
-        {icon}
-      </span>
-      <div className="min-w-0">
-        <p className="text-xs text-muted-foreground">{label}</p>
-        <p className="font-semibold truncate">{text}</p>
-      </div>
+    <div className="rounded-xl bg-muted/50 px-2 py-3">
+      <p className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</p>
+      <p className="font-bold text-sm mt-1">{value}</p>
     </div>
   );
 }

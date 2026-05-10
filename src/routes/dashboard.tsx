@@ -31,6 +31,7 @@ interface RequestRow {
   started_at?: string | null;
   claimed_by: string | null;
   payment_amount?: number | null;
+  priority?: string | null;
   claimer?: { name: string } | null;
 }
 
@@ -249,11 +250,27 @@ export function RequestCard({ r }: { r: RequestRow & { requester?: { name: strin
               {displayStatus}
             </span>
           </div>
-          <span
-            className={`mt-1 inline-flex rounded-full border px-2 py-0.5 text-[11px] font-semibold capitalize backdrop-blur-md ${style.compact}`}
-          >
-            {meta.label}
-          </span>
+          <div className="mt-1 flex flex-wrap items-center gap-1.5">
+            <span
+              className={`inline-flex rounded-full border px-2 py-0.5 text-[11px] font-semibold capitalize backdrop-blur-md ${style.compact}`}
+            >
+              {meta.label}
+            </span>
+            {(() => {
+              const pr = (r.priority ?? "normal") as "low" | "normal" | "high";
+              const pmeta = {
+                low: { label: "Low", chip: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300", dot: "bg-emerald-500" },
+                normal: { label: "Normal", chip: "bg-amber-500/15 text-amber-700 dark:text-amber-300", dot: "bg-amber-500" },
+                high: { label: "High", chip: "bg-red-500/15 text-red-600 dark:text-red-300", dot: "bg-red-500" },
+              }[pr];
+              return (
+                <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold ${pmeta.chip}`}>
+                  <span className={`size-1.5 rounded-full ${pmeta.dot}`} />
+                  {pmeta.label}
+                </span>
+              );
+            })()}
+          </div>
           <div className="mt-3 space-y-1.5 text-xs text-muted-foreground">
             <div className="flex items-center gap-1.5">
               <MapPin className="size-3.5 shrink-0" />

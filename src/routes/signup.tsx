@@ -11,7 +11,7 @@ export const Route = createFileRoute("/signup")({
   component: SignupPage,
 });
 
-const LANGUAGE_OPTIONS = ["English", "Mandarin", "Malay", "Tamil", "Hokkien", "Cantonese", "Teochew"];
+const LANGUAGE_SUGGESTIONS = ["English", "Mandarin", "Malay", "Tamil", "Hokkien", "Cantonese", "Teochew"];
 
 function SignupPage() {
   const nav = useNavigate();
@@ -220,28 +220,7 @@ function SignupPage() {
               />
             </Field>
 
-            <div>
-              <span className="block text-sm font-medium mb-1.5">Languages you speak</span>
-              <div className="flex flex-wrap gap-2">
-                {LANGUAGE_OPTIONS.map((l) => {
-                  const on = languages.includes(l);
-                  return (
-                    <button
-                      type="button"
-                      key={l}
-                      onClick={() => toggleLang(l)}
-                      className={`rounded-full px-3.5 py-1.5 text-sm border transition-colors ${
-                        on
-                          ? "bg-primary text-primary-foreground border-primary"
-                          : "bg-card border-border"
-                      }`}
-                    >
-                      {l}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
+            <LanguageInput languages={languages} setLanguages={setLanguages} />
 
             <div>
               <span className="block text-sm font-medium mb-1.5">
@@ -328,3 +307,73 @@ function SignupPage() {
     </div>
   );
 }
+
+function LanguageInput({
+  languages,
+  setLanguages,
+}: {
+  languages: string[];
+  setLanguages: (langs: string[]) => void;
+}) {
+  const [draft, setDraft] = useState("");
+  const add = (l: string) => {
+    const v = l.trim();
+    if (!v) return;
+    if (languages.some((x) => x.toLowerCase() === v.toLowerCase())) return;
+    setLanguages([...languages, v]);
+    setDraft("");
+  };
+  const remove = (l: string) => setLanguages(languages.filter((x) => x !== l));
+
+  return (
+    <div>
+      <span className="block text-sm font-medium mb-1.5">Languages you speak</span>
+      <div className="rounded-2xl border bg-card p-2 flex flex-wrap gap-1.5">
+        {languages.map((l) => (
+          <span
+            key={l}
+            className="inline-flex items-center gap-1.5 rounded-full bg-primary text-primary-foreground px-2.5 py-1 text-xs font-semibold"
+          >
+            {l}
+            <button
+              type="button"
+              onClick={() => remove(l)}
+              className="opacity-80 hover:opacity-100"
+              aria-label={`Remove ${l}`}
+            >
+              ×
+            </button>
+          </span>
+        ))}
+        <input
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === ",") {
+              e.preventDefault();
+              add(draft);
+            } else if (e.key === "Backspace" && !draft && languages.length) {
+              remove(languages[languages.length - 1]);
+            }
+          }}
+          onBlur={() => draft && add(draft)}
+          placeholder={languages.length ? "Add more…" : "Type a language and press Enter"}
+          className="flex-1 min-w-[8rem] bg-transparent px-2 py-1 text-sm outline-none"
+        />
+      </div>
+      <div className="mt-2 flex flex-wrap gap-1.5">
+        {LANGUAGE_SUGGESTIONS.filter((s) => !languages.includes(s)).map((s) => (
+          <button
+            type="button"
+            key={s}
+            onClick={() => add(s)}
+            className="rounded-full border bg-card px-2.5 py-1 text-xs text-muted-foreground hover:border-primary/40"
+          >
+            + {s}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+

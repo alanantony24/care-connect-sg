@@ -49,6 +49,7 @@ interface RequestRow {
   end_pin: string | null;
   started_at: string | null;
   payment_amount: number | null;
+  priority: string | null;
   requester: { name: string; avatar_url: string | null } | null;
   claimer: { name: string; avatar_url: string | null } | null;
 }
@@ -69,6 +70,7 @@ function TaskDetail() {
   const [apps, setApps] = useState<Application[]>([]);
   const [myApp, setMyApp] = useState<Application | null>(null);
   const [busy, setBusy] = useState(false);
+  const [confirmingId, setConfirmingId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     const { data } = await supabase
@@ -146,13 +148,14 @@ function TaskDetail() {
   };
 
   const confirmVolunteer = async (volunteerId: string) => {
-    setBusy(true);
+    setConfirmingId(volunteerId);
     const { error: e1 } = await supabase
       .from("requests")
       .update({ status: "claimed", claimed_by: volunteerId })
-      .eq("id", id);
+      .eq("id", id)
+      .eq("status", "open");
     if (e1) {
-      setBusy(false);
+      setConfirmingId(null);
       return toast.error(e1.message);
     }
     await supabase
@@ -166,7 +169,7 @@ function TaskDetail() {
       .eq("request_id", id)
       .neq("volunteer_id", volunteerId)
       .eq("status", "pending");
-    setBusy(false);
+    setConfirmingId(null);
     toast.success("Volunteer confirmed");
     load();
     loadApps();
@@ -181,16 +184,39 @@ function TaskDetail() {
           <Link to={back} className="size-10 grid place-items-center rounded-full bg-card border">
             <ArrowLeft className="size-5" />
           </Link>
-          <p className="text-primary font-bold tracking-tight">CareKampung</p>
+          <p className="text-primary font-bold tracking-tight">Komunity</p>
           <div className="size-10" />
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          {urgent && (
-            <span className="rounded-full bg-destructive/10 text-destructive text-xs font-semibold px-3 py-1.5">
-              ● High priority
-            </span>
-          )}
+          {(() => {
+            const pr = (r.priority ?? "normal") as "low" | "normal" | "high";
+            const meta = {
+              low: {
+                label: "Low priority",
+                chip: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300",
+                dot: "bg-emerald-500",
+              },
+              normal: {
+                label: "Normal priority",
+                chip: "bg-amber-500/15 text-amber-700 dark:text-amber-300",
+                dot: "bg-amber-500",
+              },
+              high: {
+                label: "High priority",
+                chip: "bg-red-500/15 text-red-600 dark:text-red-300",
+                dot: "bg-red-500",
+              },
+            }[pr];
+            return (
+              <span
+                className={`inline-flex items-center gap-1.5 rounded-full text-xs font-semibold px-3 py-1.5 ${meta.chip}`}
+              >
+                <span className={`size-2 rounded-full ${meta.dot}`} />
+                {meta.label}
+              </span>
+            );
+          })()}
           <span
             className={`rounded-full border text-xs font-semibold px-3 py-1.5 capitalize backdrop-blur-md ${taskStyle.compact}`}
           >
@@ -293,8 +319,8 @@ function TaskDetail() {
           </span>
         </div>
 
-        {/* PINs visible to caregiver (the requester) only */}
-        {isMine && r.status !== "completed" && (
+        {/* PINs visible to caregiver only after task is claimed */}
+        {isMine && r.status === "claimed" && (
           <div className="mt-4 rounded-2xl border border-primary/30 bg-primary-soft/40 p-4">
             <div className="flex items-center gap-2">
               <KeyRound className="size-4 text-primary" />
@@ -303,11 +329,11 @@ function TaskDetail() {
               </p>
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              Share these with the volunteer at the start and end of the visit.
+              Share the Start PIN now. The End PIN appears once the volunteer starts the task.
             </p>
             <div className="mt-3 grid grid-cols-2 gap-3">
               <PinBlock label="Start PIN" value={r.start_pin} />
-              <PinBlock label="End PIN" value={r.end_pin} />
+              <PinBlock label="End PIN" value={isStarted ? r.end_pin : null} />
             </div>
           </div>
         )}
@@ -393,6 +419,13 @@ function TaskDetail() {
                       </p>
                     </div>
                     <Link
+                      to="/profiles/$id"
+                      params={{ id: a.volunteer_id }}
+                      className="rounded-full bg-card border text-xs font-semibold px-3 py-2"
+                    >
+                      View
+                    </Link>
+                    <Link
                       to="/messages/$peerId"
                       params={{ peerId: a.volunteer_id }}
                       className="size-9 grid place-items-center rounded-full bg-muted text-muted-foreground"
@@ -401,11 +434,16 @@ function TaskDetail() {
                       <MessageCircle className="size-4" />
                     </Link>
                     <button
-                      disabled={busy}
+                      disabled={confirmingId !== null}
                       onClick={() => confirmVolunteer(a.volunteer_id)}
                       className="rounded-full bg-primary text-primary-foreground text-xs font-semibold px-3 py-2 shadow-elevated disabled:opacity-50 flex items-center gap-1"
                     >
-                      <UserCheck className="size-3.5" /> Confirm
+                      {confirmingId === a.volunteer_id ? (
+                        <Loader2 className="size-3.5 animate-spin" />
+                      ) : (
+                        <UserCheck className="size-3.5" />
+                      )}
+                      Accept
                     </button>
                   </li>
                 ))}
@@ -487,8 +525,9 @@ function TaskDetail() {
 
           {r.status === "completed" && (
             <>
-              <div className="rounded-2xl bg-success/15 text-success-foreground border border-success/30 p-4 text-center font-semibold">
-                ✅ Task completed — thank you!
+              <div className="rounded-2xl bg-success/15 text-success border border-success/40 p-4 text-center font-semibold flex items-center justify-center gap-2">
+                <CheckCircle2 className="size-5" />
+                <span>Task completed — thank you!</span>
               </div>
               <button
                 onClick={() => nav({ to: "/requests/$id/review", params: { id } })}
