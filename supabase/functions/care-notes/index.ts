@@ -60,9 +60,10 @@ serve(async (req) => {
         body: JSON.stringify({
           messages: [
             { role: "system", content: SYSTEM_PROMPT },
-            { role: "user", content: `Caregiver note:\n${rawNote.trim()}` },
+            { role: "user", content: `Caregiver note (may include Singlish):\n${rawNote.trim()}\n\nWrite the short volunteer instructions now, under 120 words, plain text, no markdown.` },
           ],
-          max_tokens: 1024,
+          max_tokens: 350,
+          temperature: 0.3,
         }),
       }
     );
