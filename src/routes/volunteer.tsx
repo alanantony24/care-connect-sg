@@ -4,7 +4,7 @@ import { AppShell, PageHeader } from "@/components/AppShell";
 import { MessagesFab } from "@/components/MessagesFab";
 import { useSession } from "@/lib/session";
 import { supabase } from "@/integrations/supabase/client";
-import { Bell, Loader2, Award, Heart, ChevronRight } from "lucide-react";
+import { Bell, Loader2, Award, Heart, ChevronRight, MessageCircle } from "lucide-react";
 import { RequestCard, CardSkeleton } from "./dashboard";
 import { TASK_TYPES } from "@/lib/tasks";
 import { getGreeting } from "@/lib/format";
@@ -75,9 +75,18 @@ function VolunteerHome() {
       <PageHeader
         title={`${getGreeting()}, ${profile.name.split(" ")[0]}`}
         right={
-          <span className="size-10 grid place-items-center rounded-full bg-card border">
-            <Bell className="size-5" />
-          </span>
+          <div className="flex items-center gap-2">
+            <Link
+              to="/messages"
+              aria-label="Messages"
+              className="size-10 grid place-items-center rounded-full bg-card border"
+            >
+              <MessageCircle className="size-5" />
+            </Link>
+            <span className="size-10 grid place-items-center rounded-full bg-card border">
+              <Bell className="size-5" />
+            </span>
+          </div>
         }
       />
 

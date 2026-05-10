@@ -4,7 +4,7 @@ import { AppShell, PageHeader } from "@/components/AppShell";
 import { MessagesFab } from "@/components/MessagesFab";
 import { useSession } from "@/lib/session";
 import { supabase } from "@/integrations/supabase/client";
-import { Bell, Loader2, MapPin, Plus, Calendar, ChevronRight } from "lucide-react";
+import { Bell, Loader2, MapPin, Plus, Calendar, ChevronRight, MessageCircle } from "lucide-react";
 import { taskMeta } from "@/lib/tasks";
 import { formatDateFriendly, formatTimeFriendly, getGreeting } from "@/lib/format";
 import { toast } from "sonner";
@@ -91,9 +91,18 @@ function Dashboard() {
       <PageHeader
         title={`${getGreeting()}, ${profile.name.split(" ")[0]}`}
         right={
-          <span className="size-10 grid place-items-center rounded-full bg-card border">
-            <Bell className="size-5" />
-          </span>
+          <div className="flex items-center gap-2">
+            <Link
+              to="/messages"
+              aria-label="Messages"
+              className="size-10 grid place-items-center rounded-full bg-card border"
+            >
+              <MessageCircle className="size-5" />
+            </Link>
+            <span className="size-10 grid place-items-center rounded-full bg-card border">
+              <Bell className="size-5" />
+            </span>
+          </div>
         }
       />
 
