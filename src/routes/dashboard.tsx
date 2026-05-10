@@ -89,8 +89,7 @@ function Dashboard() {
   return (
     <AppShell>
       <PageHeader
-        title={`${getGreeting()},`}
-        subtitle={profile.name.split(" ")[0]}
+        title={`${getGreeting()}, ${profile.name.split(" ")[0]}`}
         right={
           <span className="size-10 grid place-items-center rounded-full bg-card border">
             <Bell className="size-5" />
@@ -117,14 +116,15 @@ function Dashboard() {
         {/* Post new request */}
         <Link
           to="/requests/new"
-          className="flex items-center gap-3 rounded-2xl bg-primary text-primary-foreground p-4 shadow-elevated"
+          className="flex items-center gap-3 rounded-2xl p-4 shadow-elevated text-white relative overflow-hidden bg-gradient-to-br from-amber-400 via-amber-500 to-yellow-600"
         >
-          <span className="size-11 grid place-items-center rounded-xl bg-primary-foreground/15">
+          <div className="absolute -right-6 -top-6 size-24 rounded-full bg-white/15 blur-xl" />
+          <span className="relative size-11 grid place-items-center rounded-xl bg-white/20 backdrop-blur">
             <Plus className="size-6" />
           </span>
-          <div className="flex-1">
+          <div className="relative flex-1">
             <p className="font-semibold">Post a new request</p>
-            <p className="text-xs opacity-90">A volunteer can pick it up in minutes.</p>
+            <p className="text-xs opacity-95">A volunteer can pick it up in minutes.</p>
           </div>
         </Link>
 
