@@ -158,9 +158,9 @@ function NotifRow({ n }: { n: Notif }) {
   if (n.link) {
     return (
       <li>
-        <Link to={n.link} className="block">
+        <a href={n.link} className="block">
           {inner}
-        </Link>
+        </a>
       </li>
     );
   }
