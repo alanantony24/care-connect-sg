@@ -9,8 +9,9 @@ import {
   Lock,
   Heart,
   ShieldCheck,
-  Award,
-  Clock,
+  HandHeart,
+  Crown,
+  Zap,
   Star,
   ChevronRight,
   CheckCircle2,
@@ -34,19 +35,56 @@ export const Route = createFileRoute("/profile")({
 
 const BADGE_ICONS: Record<BadgeType, typeof Heart> = {
   first_responder: ShieldCheck,
-  helping_hand: Heart,
-  guardian_angel: Award,
-  early_bird: Clock,
+  helping_hand: HandHeart,
+  guardian_angel: Crown,
+  early_bird: Zap,
   trusted_helper: Star,
 };
 
-// Distinct colour palette per badge — uses bg + text classes for vibrant variety
-const BADGE_COLORS: Record<BadgeType, string> = {
-  first_responder: "bg-blue-500 text-white",
-  helping_hand: "bg-rose-500 text-white",
-  guardian_angel: "bg-amber-500 text-white",
-  early_bird: "bg-sky-500 text-white",
-  trusted_helper: "bg-violet-500 text-white",
+const BADGE_STYLES: Record<
+  BadgeType,
+  { shell: string; icon: string; glow: string; label: string; locked: string }
+> = {
+  first_responder: {
+    shell:
+      "border-cyan-200/25 bg-gradient-to-br from-cyan-950 via-blue-950 to-slate-950 text-cyan-50",
+    icon: "bg-cyan-300/18 text-cyan-100 ring-cyan-100/25",
+    glow: "bg-cyan-300/35",
+    label: "text-cyan-100",
+    locked: "from-slate-800 via-slate-900 to-slate-950",
+  },
+  helping_hand: {
+    shell:
+      "border-rose-200/25 bg-gradient-to-br from-rose-950 via-pink-950 to-slate-950 text-rose-50",
+    icon: "bg-rose-300/18 text-rose-100 ring-rose-100/25",
+    glow: "bg-rose-300/35",
+    label: "text-rose-100",
+    locked: "from-slate-800 via-slate-900 to-slate-950",
+  },
+  guardian_angel: {
+    shell:
+      "border-amber-200/30 bg-gradient-to-br from-amber-900 via-orange-950 to-stone-950 text-amber-50",
+    icon: "bg-amber-200/20 text-amber-100 ring-amber-100/30",
+    glow: "bg-amber-300/40",
+    label: "text-amber-100",
+    locked: "from-slate-800 via-slate-900 to-slate-950",
+  },
+  early_bird: {
+    shell:
+      "border-indigo-200/25 bg-gradient-to-br from-indigo-950 via-violet-950 to-slate-950 text-indigo-50",
+    icon: "bg-indigo-300/18 text-indigo-100 ring-indigo-100/25",
+    glow: "bg-indigo-300/35",
+    label: "text-indigo-100",
+    locked: "from-slate-800 via-slate-900 to-slate-950",
+  },
+  trusted_helper: {
+    shell:
+      "border-emerald-200/25 bg-gradient-to-br from-emerald-950 via-teal-950 to-slate-950 text-emerald-50",
+    icon: "bg-emerald-300/18 text-emerald-100 ring-emerald-100/25",
+    glow: "bg-emerald-300/35",
+    label: "text-emerald-100",
+    locked: "from-slate-800 via-slate-900 to-slate-950",
+  },
 };
 
 interface Review {
@@ -314,26 +352,39 @@ function ProfilePage() {
                 <div className="grid grid-cols-3 gap-3">
                   {BADGE_DEFS.map((b) => {
                     const Icon = BADGE_ICONS[b.type];
+                    const style = BADGE_STYLES[b.type];
                     const got = earned.has(b.type);
                     return (
-                      <div key={b.type} className="flex flex-col items-center text-center">
+                      <div key={b.type} className="flex flex-col items-center text-center gap-2">
                         <div
-                          className={`size-16 rounded-full grid place-items-center relative shadow-elevated ${
+                          className={`relative size-20 overflow-hidden rounded-2xl border grid place-items-center shadow-elevated ${
                             got
-                              ? BADGE_COLORS[b.type]
-                              : "bg-muted text-muted-foreground shadow-none"
+                              ? style.shell
+                              : `border-border bg-gradient-to-br ${style.locked} text-muted-foreground opacity-70 shadow-none`
                           }`}
                         >
-                          <Icon className="size-7" />
+                          <span
+                            className={`absolute -right-5 -top-6 size-16 rounded-full ${
+                              got ? style.glow : "bg-white/8"
+                            } blur-2xl`}
+                          />
+                          <span className="absolute inset-x-0 top-0 h-px bg-white/25" />
+                          <span
+                            className={`relative size-12 rounded-2xl grid place-items-center ring-1 backdrop-blur ${
+                              got ? style.icon : "bg-white/8 text-slate-400 ring-white/10"
+                            }`}
+                          >
+                            <Icon className="size-6" strokeWidth={2.25} />
+                          </span>
                           {!got && (
-                            <span className="absolute -bottom-1 -right-1 size-6 rounded-full bg-card border grid place-items-center text-muted-foreground">
-                              <Lock className="size-3" />
+                            <span className="absolute right-1.5 top-1.5 size-6 rounded-full bg-slate-950/80 border border-white/10 grid place-items-center text-slate-300">
+                              <Lock className="size-3.5" />
                             </span>
                           )}
                         </div>
                         <p
-                          className={`mt-2 text-xs font-semibold leading-tight ${
-                            got ? "" : "text-muted-foreground"
+                          className={`text-xs font-semibold leading-tight ${
+                            got ? style.label : "text-muted-foreground"
                           }`}
                         >
                           {b.name}
