@@ -281,7 +281,7 @@ function TaskDetail() {
         )}
 
         {/* PINs visible to caregiver (the requester) only */}
-        {isMine && r.status !== "completed" && (
+        {isMine && r.status === "claimed" && isStarted && (
           <div className="mt-4 rounded-2xl border border-primary/30 bg-primary-soft/40 p-4">
             <div className="flex items-center gap-2">
               <KeyRound className="size-4 text-primary" />
