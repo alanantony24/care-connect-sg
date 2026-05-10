@@ -1,11 +1,13 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { createFileRoute, Link, redirect } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { AppShell, PageHeader } from "@/components/AppShell";
 import { MessagesFab } from "@/components/MessagesFab";
 import { useSession } from "@/lib/session";
 import { supabase } from "@/integrations/supabase/client";
-import { Bell, Loader2, Award, Heart } from "lucide-react";
-import { RequestCard, CardSkeleton, EmptyHint } from "./dashboard";
+import { Bell, Loader2, Award, Heart, ChevronRight } from "lucide-react";
+import mascot from "@/assets/mascot.png";
+import { RequestCard, CardSkeleton } from "./dashboard";
+import { TASK_TYPES } from "@/lib/tasks";
 import { getGreeting } from "@/lib/format";
 
 export const Route = createFileRoute("/volunteer")({
@@ -34,7 +36,6 @@ interface RequestRow {
 function VolunteerHome() {
   const { profile } = useSession();
   const [rows, setRows] = useState<RequestRow[] | null>(null);
-  const [filter, setFilter] = useState<"all" | "nearby" | "urgent">("all");
 
   useEffect(() => {
     if (!profile) return;
@@ -46,17 +47,7 @@ function VolunteerHome() {
       .then(({ data }) => setRows((data ?? []) as RequestRow[]));
   }, [profile]);
 
-  const visible = useMemo(() => {
-    const list = (rows ?? []).filter((r) => r.status === "open");
-    if (filter === "urgent") {
-      return list.filter((r) => {
-        const ageHours = (Date.now() - new Date(r.created_at).getTime()) / 36e5;
-        return ageHours < 12;
-      });
-    }
-    return list;
-  }, [rows, filter]);
-
+  const openList = (rows ?? []).filter((r) => r.status === "open");
   const myActive = (rows ?? []).find((r) => r.claimed_by === profile?.id && r.status === "claimed");
 
   if (!profile) {
@@ -83,12 +74,15 @@ function VolunteerHome() {
   return (
     <AppShell>
       <PageHeader
-        title={`${getGreeting()},`}
-        subtitle={profile.name.split(" ")[0]}
+        title={`${getGreeting()}, ${profile.name.split(" ")[0]}`}
         right={
-          <span className="size-10 grid place-items-center rounded-full bg-card border">
+          <Link
+            to="/notifications"
+            aria-label="Notifications"
+            className="size-10 grid place-items-center rounded-full bg-card border"
+          >
             <Bell className="size-5" />
-          </span>
+          </Link>
         }
       />
 
@@ -99,7 +93,7 @@ function VolunteerHome() {
         </div>
 
         {nextBadge && (
-          <div className="mt-4 rounded-2xl p-4 shadow-elevated text-white relative overflow-hidden bg-gradient-to-br from-amber-400 via-amber-500 to-yellow-600">
+          <div className="mt-4 rounded-2xl p-4 shadow-elevated text-white relative overflow-hidden bg-gradient-to-br from-[#D4AF37] via-[#C9962B] to-[#8B6914]">
             <div className="absolute -right-6 -top-6 size-24 rounded-full bg-white/15 blur-xl" />
             <div className="relative flex items-start gap-3">
               <span className="size-12 grid place-items-center rounded-2xl bg-white/20 backdrop-blur shrink-0">
@@ -139,37 +133,53 @@ function VolunteerHome() {
           </h2>
         </div>
 
-        <div className="mt-3 flex gap-2">
-          {(["all", "nearby", "urgent"] as const).map((f) => (
-            <button
-              key={f}
-              onClick={() => setFilter(f)}
-              className={`rounded-full px-4 py-1.5 text-sm font-medium border capitalize ${
-                filter === f
-                  ? "bg-primary text-primary-foreground border-primary"
-                  : "bg-card text-muted-foreground"
-              }`}
-            >
-              {f}
-            </button>
-          ))}
-        </div>
-
-        <div className="mt-4">
+        <div className="mt-3">
           {rows === null ? (
             <CardSkeleton />
-          ) : visible.length === 0 ? (
-            <EmptyHint
-              title="No open tasks right now"
-              hint="Check back soon — new tasks appear all day."
-            />
           ) : (
-            <div className="space-y-3">
-              {visible.map((r) => (
-                <RequestCard key={r.id} r={r} />
-              ))}
+            <div className="rounded-2xl bg-card border p-4 shadow-card">
+              <div className="grid grid-cols-3 gap-2.5">
+                {TASK_TYPES.map((t) => {
+                  const Icon = t.icon;
+                  const count = openList.filter((r) => r.task_type === t.value).length;
+                  return (
+                    <div
+                      key={t.value}
+                      className="flex flex-col items-center gap-1.5 rounded-xl bg-primary-soft/60 p-3"
+                    >
+                      <span className="size-9 grid place-items-center rounded-lg bg-card text-primary">
+                        <Icon className="size-4" />
+                      </span>
+                      <p className="text-lg font-bold leading-none text-primary">{count}</p>
+                      <p className="text-[11px] font-medium text-muted-foreground leading-tight text-center">
+                        {t.label}
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
+              <Link
+                to="/feed"
+                className="mt-4 w-full rounded-full bg-primary text-primary-foreground py-2.5 font-semibold text-sm flex items-center justify-center gap-1.5 shadow-card active:scale-[0.99] transition-transform"
+              >
+                View all tasks <ChevronRight className="size-4" />
+              </Link>
             </div>
           )}
+        </div>
+
+        <div className="mt-10 flex flex-col items-center text-center opacity-90">
+          <img
+            src={mascot}
+            alt=""
+            width={160}
+            height={160}
+            loading="lazy"
+            className="size-32 object-contain drop-shadow-sm"
+          />
+          <p className="mt-2 text-xs text-muted-foreground max-w-[14rem]">
+            Thank you for being part of Komunity.
+          </p>
         </div>
       </div>
       <MessagesFab />

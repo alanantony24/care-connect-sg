@@ -35,6 +35,7 @@ function NewRequest() {
   const [location, setLocation] = useState("");
   const [notes, setNotes] = useState("");
   const [payment, setPayment] = useState("10");
+  const [priority, setPriority] = useState<"low" | "normal" | "high">("normal");
   const [busy, setBusy] = useState(false);
   const suggestedPayment = paymentGuidance(taskType);
   const paymentInputRef = useRef<HTMLInputElement>(null);
@@ -63,7 +64,8 @@ function NewRequest() {
       time_needed: time,
       location,
       notes: notes || null,
-      payment_amount: finalPayment,
+      payment_amount: Number(payment) || 0,
+      priority,
       requester_id: profile.id,
     });
     setBusy(false);
@@ -161,6 +163,42 @@ function NewRequest() {
             placeholder="e.g. Block 102, Ang Mo Kio Ave 3"
           />
         </Field>
+
+        <div>
+          <span className="block text-sm font-medium mb-2">Priority</span>
+          <div className="grid grid-cols-3 gap-2">
+            {([
+              { v: "low", label: "Low", hint: "Flexible" },
+              { v: "normal", label: "Normal", hint: "Standard" },
+              { v: "high", label: "High", hint: "Urgent" },
+            ] as const).map((p) => {
+              const active = priority === p.v;
+              const tone =
+                p.v === "high"
+                  ? active
+                    ? "border-destructive bg-destructive/10 text-destructive"
+                    : "bg-card"
+                  : p.v === "low"
+                    ? active
+                      ? "border-primary bg-primary-soft text-primary"
+                      : "bg-card"
+                    : active
+                      ? "border-primary bg-primary-soft"
+                      : "bg-card";
+              return (
+                <button
+                  type="button"
+                  key={p.v}
+                  onClick={() => setPriority(p.v)}
+                  className={`rounded-2xl border p-3 text-left transition-colors ${tone}`}
+                >
+                  <p className="text-sm font-semibold">{p.label}</p>
+                  <p className="text-xs opacity-80">{p.hint}</p>
+                </button>
+              );
+            })}
+          </div>
+        </div>
 
         <Field label="Notes for volunteers">
           <textarea

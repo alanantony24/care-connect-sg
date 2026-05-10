@@ -322,7 +322,7 @@ function TaskDetail() {
           </div>
         )}
 
-        {iClaimed && r.requester_id !== profile.id && (
+        {isVolunteer && (myApp || iClaimed) && r.requester_id !== profile.id && (
           <Link
             to="/messages/$peerId"
             params={{ peerId: r.requester_id }}
@@ -333,7 +333,9 @@ function TaskDetail() {
             </span>
             <div className="flex-1">
               <p className="font-semibold">Message caregiver</p>
-              <p className="text-xs text-muted-foreground">Coordinate details with {r.requester?.name ?? "the caregiver"}.</p>
+              <p className="text-xs text-muted-foreground">
+                Coordinate details with {r.requester?.name ?? "the caregiver"}.
+              </p>
             </div>
           </Link>
         )}

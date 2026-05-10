@@ -112,30 +112,96 @@ export type Database = {
         }
         Relationships: []
       }
-      profiles: {
+      notifications: {
         Row: {
-          avatar_url: string | null
+          body: string | null
           created_at: string
           id: string
+          link: string | null
+          read_at: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          link?: string | null
+          read_at?: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          link?: string | null
+          read_at?: string | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          age: number | null
+          avatar_url: string | null
+          cert_status: string
+          cert_url: string | null
+          created_at: string
+          emergency_contact: string | null
+          experience: string | null
+          id: string
+          languages: string[] | null
+          motivation: string | null
           name: string
+          notes: string | null
+          preferred_area: string | null
+          preferred_lat: number | null
+          preferred_lng: number | null
           role: string
           tasks_helped: number
           tasks_received: number
         }
         Insert: {
+          age?: number | null
           avatar_url?: string | null
+          cert_status?: string
+          cert_url?: string | null
           created_at?: string
+          emergency_contact?: string | null
+          experience?: string | null
           id: string
+          languages?: string[] | null
+          motivation?: string | null
           name: string
+          notes?: string | null
+          preferred_area?: string | null
+          preferred_lat?: number | null
+          preferred_lng?: number | null
           role: string
           tasks_helped?: number
           tasks_received?: number
         }
         Update: {
+          age?: number | null
           avatar_url?: string | null
+          cert_status?: string
+          cert_url?: string | null
           created_at?: string
+          emergency_contact?: string | null
+          experience?: string | null
           id?: string
+          languages?: string[] | null
+          motivation?: string | null
           name?: string
+          notes?: string | null
+          preferred_area?: string | null
+          preferred_lat?: number | null
+          preferred_lng?: number | null
           role?: string
           tasks_helped?: number
           tasks_received?: number
@@ -153,6 +219,7 @@ export type Database = {
           location: string
           notes: string | null
           payment_amount: number
+          priority: string
           requester_id: string
           start_pin: string | null
           started_at: string | null
@@ -171,6 +238,7 @@ export type Database = {
           location: string
           notes?: string | null
           payment_amount?: number
+          priority?: string
           requester_id: string
           start_pin?: string | null
           started_at?: string | null
@@ -189,6 +257,7 @@ export type Database = {
           location?: string
           notes?: string | null
           payment_amount?: number
+          priority?: string
           requester_id?: string
           start_pin?: string | null
           started_at?: string | null
