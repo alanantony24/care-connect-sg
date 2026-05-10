@@ -4,7 +4,7 @@ import { AppShell } from "@/components/AppShell";
 import { FeeReceipt } from "@/components/FeeReceipt";
 import { useSession } from "@/lib/session";
 import { supabase } from "@/integrations/supabase/client";
-import { platformFeeFor, taskMeta, volunteerPayoutFor } from "@/lib/tasks";
+import { platformFeeFor, taskMeta, volunteerPayoutFor, priorityMeta } from "@/lib/tasks";
 import { toast } from "sonner";
 import {
   ArrowLeft,
@@ -21,6 +21,7 @@ import {
   HandHeart,
   UserCheck,
   Hourglass,
+  Eye,
 } from "lucide-react";
 import { formatDateFriendly, formatTimeFriendly } from "@/lib/format";
 
