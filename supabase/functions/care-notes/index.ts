@@ -62,6 +62,7 @@ serve(async (req) => {
             { role: "system", content: SYSTEM_PROMPT },
             { role: "user", content: `Caregiver note:\n${rawNote.trim()}` },
           ],
+          max_tokens: 1024,
         }),
       }
     );
@@ -76,13 +77,24 @@ serve(async (req) => {
     }
 
     const json = await aiResponse.json();
-    const text = json?.result?.response ?? json?.result?.output_text;
+    console.log("Cloudflare AI raw response:", JSON.stringify(json).slice(0, 1000));
+
+    const r = json?.result;
+    const text: string | undefined =
+      (typeof r?.response === "string" ? r.response : undefined) ??
+      (typeof r?.response?.response === "string" ? r.response.response : undefined) ??
+      (typeof r?.output_text === "string" ? r.output_text : undefined) ??
+      (Array.isArray(r?.choices) ? r.choices[0]?.message?.content : undefined) ??
+      (typeof r === "string" ? r : undefined);
 
     if (typeof text !== "string" || text.trim().length === 0) {
-      return new Response(JSON.stringify({ error: "AI returned an empty response." }), {
-        status: 502,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return new Response(
+        JSON.stringify({
+          error: "AI returned an empty response.",
+          debug: json,
+        }),
+        { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     return new Response(JSON.stringify({ text: text.trim(), source: "sea-lion" }), {
