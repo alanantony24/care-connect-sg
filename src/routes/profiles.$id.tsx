@@ -1,4 +1,4 @@
-import { createFileRoute, Link, redirect, useNavigate, useParams } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect, useParams } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ArrowLeft, Loader2, Star, BadgeCheck, MapPin, Languages, MessageCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -28,7 +28,6 @@ interface ProfileRow {
 
 function PublicProfile() {
   const { id } = useParams({ from: "/profiles/$id" });
-  const nav = useNavigate();
   const [p, setP] = useState<ProfileRow | null>(null);
   const [avg, setAvg] = useState<number | null>(null);
 
