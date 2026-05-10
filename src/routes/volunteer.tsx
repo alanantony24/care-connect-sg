@@ -84,8 +84,8 @@ function VolunteerHome() {
   return (
     <AppShell>
       <PageHeader
-        title={`Hi, ${profile.name.split(" ")[0]}`}
-        subtitle="Help your community today."
+        title={`${getGreeting()},`}
+        subtitle={profile.name.split(" ")[0]}
         right={
           <span className="size-10 grid place-items-center rounded-full bg-card border">
             <Bell className="size-5" />
