@@ -200,6 +200,9 @@ function ProfilePage() {
           />
         </div>
 
+        {/* Volunteer: my signup info */}
+        {isVolunteer && <VolunteerInfoSection profile={profile as any} />}
+
         {/* Caregiver: Care recipients */}
         {!isVolunteer && (
           <>
