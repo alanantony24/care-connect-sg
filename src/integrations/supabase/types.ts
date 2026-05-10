@@ -147,28 +147,61 @@ export type Database = {
       }
       profiles: {
         Row: {
+          age: number | null
           avatar_url: string | null
+          cert_status: string
+          cert_url: string | null
           created_at: string
+          emergency_contact: string | null
+          experience: string | null
           id: string
+          languages: string[] | null
+          motivation: string | null
           name: string
+          notes: string | null
+          preferred_area: string | null
+          preferred_lat: number | null
+          preferred_lng: number | null
           role: string
           tasks_helped: number
           tasks_received: number
         }
         Insert: {
+          age?: number | null
           avatar_url?: string | null
+          cert_status?: string
+          cert_url?: string | null
           created_at?: string
+          emergency_contact?: string | null
+          experience?: string | null
           id: string
+          languages?: string[] | null
+          motivation?: string | null
           name: string
+          notes?: string | null
+          preferred_area?: string | null
+          preferred_lat?: number | null
+          preferred_lng?: number | null
           role: string
           tasks_helped?: number
           tasks_received?: number
         }
         Update: {
+          age?: number | null
           avatar_url?: string | null
+          cert_status?: string
+          cert_url?: string | null
           created_at?: string
+          emergency_contact?: string | null
+          experience?: string | null
           id?: string
+          languages?: string[] | null
+          motivation?: string | null
           name?: string
+          notes?: string | null
+          preferred_area?: string | null
+          preferred_lat?: number | null
+          preferred_lng?: number | null
           role?: string
           tasks_helped?: number
           tasks_received?: number
