@@ -98,7 +98,13 @@ serve(async (req) => {
       );
     }
 
-    return new Response(JSON.stringify({ text: text.trim(), source: "sea-lion" }), {
+    const cleaned = text
+      .replace(/\*\*/g, "")
+      .replace(/^#+\s*/gm, "")
+      .replace(/^\s*[*•]\s+/gm, "- ")
+      .trim();
+
+    return new Response(JSON.stringify({ text: cleaned, source: "sea-lion" }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
