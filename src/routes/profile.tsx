@@ -137,10 +137,6 @@ function ProfilePage() {
         </div>
 
         {/* Caregiver: Care recipients */}
-        {!isVolunteer && (
-          <>
-            <h3 className="mt-7 mb-3 text-base font-bold">Care Recipients</h3>
-            <div className="space-y-2.5">
         {/* Caregiver: Care recipients */}
         {!isVolunteer && (
           <>
@@ -163,9 +159,6 @@ function ProfilePage() {
                   <ChevronRight className="size-4 text-muted-foreground shrink-0" />
                 </Link>
               ))}
-            </div>
-          </>
-        )}
             </div>
           </>
         )}
