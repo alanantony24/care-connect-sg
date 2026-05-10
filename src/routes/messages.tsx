@@ -61,10 +61,32 @@ function MessagesList() {
       }
 
       const ids = Array.from(byPeer.keys());
+
+      // Only keep peers who currently share an active (non-completed) task
+      const { data: activeReqs } = await supabase
+        .from("requests")
+        .select("requester_id, claimed_by, status")
+        .neq("status", "completed")
+        .or(`requester_id.eq.${profile.id},claimed_by.eq.${profile.id}`);
+      const activePeers = new Set<string>();
+      for (const r of (activeReqs ?? []) as any[]) {
+        if (!r.claimed_by) continue;
+        const peer = r.requester_id === profile.id ? r.claimed_by : r.requester_id;
+        if (peer) activePeers.add(peer);
+      }
+      for (const id of ids) {
+        if (!activePeers.has(id)) byPeer.delete(id);
+      }
+
+      if (byPeer.size === 0) {
+        setConvos([]);
+        return;
+      }
+
       const { data: profs } = await supabase
         .from("profiles")
         .select("id, name, role")
-        .in("id", ids);
+        .in("id", Array.from(byPeer.keys()));
       for (const p of (profs ?? []) as any[]) {
         const c = byPeer.get(p.id);
         if (c) {

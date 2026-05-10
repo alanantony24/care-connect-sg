@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { AppShell, PageHeader } from "@/components/AppShell";
 import { useSession } from "@/lib/session";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Plus } from "lucide-react";
+import { Loader2, Plus, MessageCircle } from "lucide-react";
 import { RequestCard, CardSkeleton, EmptyHint } from "./dashboard";
 import { TASK_TYPES, type TaskType } from "@/lib/tasks";
 
@@ -125,15 +125,24 @@ function Feed() {
       <PageHeader
         title="Task Management"
         right={
-          profile.role === "caregiver" ? (
+          <div className="flex items-center gap-2">
             <Link
-              to="/requests/new"
-              className="size-10 grid place-items-center rounded-full bg-primary text-primary-foreground shadow-elevated"
-              aria-label="Post new request"
+              to="/messages"
+              className="size-10 grid place-items-center rounded-full bg-card border"
+              aria-label="Messages"
             >
-              <Plus className="size-5" />
+              <MessageCircle className="size-5" />
             </Link>
-          ) : undefined
+            {profile.role === "caregiver" && (
+              <Link
+                to="/requests/new"
+                className="size-10 grid place-items-center rounded-full bg-primary text-primary-foreground shadow-elevated"
+                aria-label="Post new request"
+              >
+                <Plus className="size-5" />
+              </Link>
+            )}
+          </div>
         }
       />
       <div className="container-app">
