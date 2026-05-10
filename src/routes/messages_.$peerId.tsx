@@ -1,8 +1,9 @@
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, Loader2, Send } from "lucide-react";
+import { ArrowLeft, Loader2, Send, Mic, Square, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/lib/session";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/messages_/$peerId")({
   beforeLoad: async () => {
@@ -22,6 +23,8 @@ interface Message {
   created_at: string;
 }
 
+const VOICE_PREFIX = "[voice]";
+
 function ChatThread() {
   const { peerId } = Route.useParams();
   const { profile } = useSession();
@@ -29,7 +32,13 @@ function ChatThread() {
   const [peer, setPeer] = useState<{ name: string; role: string } | null>(null);
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
-  const [hasActiveTask, setHasActiveTask] = useState<boolean | null>(null);
+  const [recording, setRecording] = useState(false);
+  const [uploadingVoice, setUploadingVoice] = useState(false);
+  const [recSeconds, setRecSeconds] = useState(0);
+  const recorderRef = useRef<MediaRecorder | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
+  const cancelRecRef = useRef(false);
+  const recTimerRef = useRef<number | null>(null);
   const endRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -43,22 +52,6 @@ function ChatThread() {
 
   useEffect(() => {
     if (!profile) return;
-    const checkActive = async () => {
-      const { data } = await supabase
-        .from("requests")
-        .select("id")
-        .neq("status", "completed")
-        .or(
-          `and(requester_id.eq.${profile.id},claimed_by.eq.${peerId}),and(requester_id.eq.${peerId},claimed_by.eq.${profile.id})`,
-        )
-        .limit(1);
-      setHasActiveTask((data ?? []).length > 0);
-    };
-    checkActive();
-  }, [profile, peerId]);
-
-  useEffect(() => {
-    if (!profile) return;
     const load = async () => {
       const { data } = await supabase
         .from("messages")
@@ -69,7 +62,6 @@ function ChatThread() {
         .order("created_at", { ascending: true });
       setMessages((data ?? []) as Message[]);
 
-      // Mark unread incoming as read
       await supabase
         .from("messages")
         .update({ read_at: new Date().toISOString() })
@@ -121,8 +113,89 @@ function ChatThread() {
       content: text.trim(),
     });
     setSending(false);
-    if (!error) setText("");
+    if (error) toast.error(error.message);
+    else setText("");
   };
+
+  const startRecording = async () => {
+    if (!profile) return;
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mime = MediaRecorder.isTypeSupported("audio/webm") ? "audio/webm" : "";
+      const rec = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined);
+      chunksRef.current = [];
+      cancelRecRef.current = false;
+      rec.ondataavailable = (e) => {
+        if (e.data.size > 0) chunksRef.current.push(e.data);
+      };
+      rec.onstop = async () => {
+        stream.getTracks().forEach((t) => t.stop());
+        if (recTimerRef.current) {
+          clearInterval(recTimerRef.current);
+          recTimerRef.current = null;
+        }
+        setRecording(false);
+        if (cancelRecRef.current) {
+          chunksRef.current = [];
+          return;
+        }
+        await uploadAndSendVoice();
+      };
+      rec.start();
+      recorderRef.current = rec;
+      setRecording(true);
+      setRecSeconds(0);
+      recTimerRef.current = window.setInterval(() => {
+        setRecSeconds((s) => {
+          if (s >= 119) {
+            stopRecording();
+            return s;
+          }
+          return s + 1;
+        });
+      }, 1000);
+    } catch (err) {
+      toast.error("Microphone access denied");
+    }
+  };
+
+  const stopRecording = () => {
+    cancelRecRef.current = false;
+    recorderRef.current?.stop();
+  };
+
+  const cancelRecording = () => {
+    cancelRecRef.current = true;
+    recorderRef.current?.stop();
+  };
+
+  const uploadAndSendVoice = async () => {
+    if (!profile || chunksRef.current.length === 0) return;
+    setUploadingVoice(true);
+    try {
+      const blob = new Blob(chunksRef.current, { type: "audio/webm" });
+      const path = `${profile.id}/${Date.now()}.webm`;
+      const { error: upErr } = await supabase.storage
+        .from("voice-messages")
+        .upload(path, blob, { contentType: "audio/webm" });
+      if (upErr) throw upErr;
+      const { data: pub } = supabase.storage.from("voice-messages").getPublicUrl(path);
+      const { error: msgErr } = await supabase.from("messages").insert({
+        sender_id: profile.id,
+        recipient_id: peerId,
+        content: `${VOICE_PREFIX}${pub.publicUrl}`,
+      });
+      if (msgErr) throw msgErr;
+    } catch (err: any) {
+      toast.error(err.message ?? "Failed to send voice message");
+    } finally {
+      setUploadingVoice(false);
+      chunksRef.current = [];
+    }
+  };
+
+  const fmtRec = (s: number) =>
+    `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -153,6 +226,7 @@ function ChatThread() {
         ) : (
           messages.map((m) => {
             const mine = m.sender_id === profile?.id;
+            const isVoice = m.content.startsWith(VOICE_PREFIX);
             return (
               <div key={m.id} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
                 <div
@@ -162,7 +236,15 @@ function ChatThread() {
                       : "bg-card border rounded-bl-md"
                   }`}
                 >
-                  <p className="whitespace-pre-wrap break-words">{m.content}</p>
+                  {isVoice ? (
+                    <audio
+                      controls
+                      src={m.content.slice(VOICE_PREFIX.length)}
+                      className="max-w-[240px] w-full"
+                    />
+                  ) : (
+                    <p className="whitespace-pre-wrap break-words">{m.content}</p>
+                  )}
                   <p
                     className={`text-[10px] mt-1 ${mine ? "text-primary-foreground/70" : "text-muted-foreground"}`}
                   >
@@ -179,36 +261,71 @@ function ChatThread() {
         <div ref={endRef} />
       </main>
 
-      {hasActiveTask === false ? (
-        <div className="sticky bottom-0 bg-muted/40 backdrop-blur border-t">
-          <div className="container-app py-4 text-center text-sm text-muted-foreground">
-            Chat closed — this task has been completed.
-          </div>
-          <div className="h-[env(safe-area-inset-bottom)]" />
+      <form onSubmit={send} className="sticky bottom-0 bg-background/95 backdrop-blur border-t">
+        <div className="container-app py-3 flex items-center gap-2">
+          {recording ? (
+            <>
+              <button
+                type="button"
+                onClick={cancelRecording}
+                aria-label="Cancel recording"
+                className="size-12 grid place-items-center rounded-full bg-muted text-muted-foreground"
+              >
+                <Trash2 className="size-5" />
+              </button>
+              <div className="flex-1 flex items-center gap-2 rounded-full bg-destructive/10 border border-destructive/30 px-4 py-3">
+                <span className="size-2.5 rounded-full bg-destructive animate-pulse" />
+                <p className="text-sm font-medium text-destructive">
+                  Recording… {fmtRec(recSeconds)}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={stopRecording}
+                aria-label="Stop and send"
+                className="size-12 grid place-items-center rounded-full bg-primary text-primary-foreground shadow-elevated"
+              >
+                <Square className="size-5 fill-current" />
+              </button>
+            </>
+          ) : (
+            <>
+              <input
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                placeholder="Type a message…"
+                disabled={uploadingVoice}
+                className="flex-1 rounded-full bg-card border px-4 py-3 text-sm outline-none focus:border-primary disabled:opacity-60"
+              />
+              {text.trim() ? (
+                <button
+                  type="submit"
+                  disabled={sending}
+                  aria-label="Send message"
+                  className="size-12 grid place-items-center rounded-full bg-primary text-primary-foreground shadow-elevated disabled:opacity-50"
+                >
+                  {sending ? <Loader2 className="size-5 animate-spin" /> : <Send className="size-5" />}
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={startRecording}
+                  disabled={uploadingVoice}
+                  aria-label="Record voice message"
+                  className="size-12 grid place-items-center rounded-full bg-primary text-primary-foreground shadow-elevated disabled:opacity-50"
+                >
+                  {uploadingVoice ? (
+                    <Loader2 className="size-5 animate-spin" />
+                  ) : (
+                    <Mic className="size-5" />
+                  )}
+                </button>
+              )}
+            </>
+          )}
         </div>
-      ) : (
-        <form
-          onSubmit={send}
-          className="sticky bottom-0 bg-background/95 backdrop-blur border-t"
-        >
-          <div className="container-app py-3 flex items-center gap-2">
-            <input
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              placeholder="Type a message…"
-              className="flex-1 rounded-full bg-card border px-4 py-3 text-sm outline-none focus:border-primary"
-            />
-            <button
-              type="submit"
-              disabled={!text.trim() || sending}
-              className="size-12 grid place-items-center rounded-full bg-primary text-primary-foreground shadow-elevated disabled:opacity-50"
-            >
-              {sending ? <Loader2 className="size-5 animate-spin" /> : <Send className="size-5" />}
-            </button>
-          </div>
-          <div className="h-[env(safe-area-inset-bottom)]" />
-        </form>
-      )}
+        <div className="h-[env(safe-area-inset-bottom)]" />
+      </form>
     </div>
   );
 }
