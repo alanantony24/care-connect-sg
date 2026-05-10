@@ -1,9 +1,10 @@
 import { createFileRoute, Link, redirect, useNavigate, useParams } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { useSession } from "@/lib/session";
 import { supabase } from "@/integrations/supabase/client";
 import { taskMeta } from "@/lib/tasks";
+import { toast } from "sonner";
 import {
   ArrowLeft,
   Calendar,
@@ -16,6 +17,9 @@ import {
   PlayCircle,
   Wallet,
   MessageCircle,
+  HandHeart,
+  UserCheck,
+  Hourglass,
 } from "lucide-react";
 
 export const Route = createFileRoute("/requests/$id")({
