@@ -4,7 +4,7 @@ import { AppShell } from "@/components/AppShell";
 import { FeeReceipt } from "@/components/FeeReceipt";
 import { useSession } from "@/lib/session";
 import { supabase } from "@/integrations/supabase/client";
-import { platformFeeFor, taskBadgeStyle, taskMeta, volunteerPayoutFor } from "@/lib/tasks";
+import { platformFeeFor, PRIORITY_META, taskBadgeStyle, taskMeta, volunteerPayoutFor, type Priority } from "@/lib/tasks";
 import { toast } from "sonner";
 import {
   ArrowLeft,
@@ -21,6 +21,7 @@ import {
   HandHeart,
   UserCheck,
   Hourglass,
+  Eye,
 } from "lucide-react";
 import { formatDateFriendly, formatTimeFriendly } from "@/lib/format";
 
@@ -49,6 +50,7 @@ interface RequestRow {
   end_pin: string | null;
   started_at: string | null;
   payment_amount: number | null;
+  priority: string | null;
   requester: { name: string; avatar_url: string | null } | null;
   claimer: { name: string; avatar_url: string | null } | null;
 }
