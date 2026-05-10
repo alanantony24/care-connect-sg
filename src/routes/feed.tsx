@@ -136,15 +136,15 @@ function Feed() {
         }
       />
       <div className="container-app">
-        <div className="border-b flex overflow-x-auto no-scrollbar -mx-1 px-1">
+        <div className="flex gap-2 overflow-x-auto no-scrollbar -mx-1 px-1 pb-1">
           {tabs.map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
-              className={`flex-1 min-w-fit px-3 py-3 text-sm font-semibold capitalize border-b-2 transition-colors whitespace-nowrap ${
+              className={`rounded-full px-5 py-2 text-sm font-semibold capitalize whitespace-nowrap border transition-colors ${
                 tab === t
-                  ? "border-primary text-primary"
-                  : "border-transparent text-muted-foreground"
+                  ? "bg-primary text-primary-foreground border-primary shadow-card"
+                  : "bg-card text-muted-foreground border-border hover:text-foreground"
               }`}
             >
               {t}

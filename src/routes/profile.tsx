@@ -1,5 +1,5 @@
 import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AppShell, PageHeader } from "@/components/AppShell";
 import { useSession } from "@/lib/session";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,11 +13,12 @@ import {
   Clock,
   Star,
   ChevronRight,
-  Mail,
   CheckCircle2,
+  Camera,
 } from "lucide-react";
 import { BADGE_DEFS, type BadgeType } from "@/lib/badges";
 import { SENIORS } from "@/lib/seniors";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/profile")({
   beforeLoad: async () => {
@@ -35,6 +36,15 @@ const BADGE_ICONS: Record<BadgeType, typeof Heart> = {
   trusted_helper: Star,
 };
 
+// Distinct colour palette per badge — uses bg + text classes for vibrant variety
+const BADGE_COLORS: Record<BadgeType, string> = {
+  first_responder: "bg-blue-500 text-white",
+  helping_hand: "bg-rose-500 text-white",
+  guardian_angel: "bg-amber-500 text-white",
+  early_bird: "bg-sky-500 text-white",
+  trusted_helper: "bg-violet-500 text-white",
+};
+
 interface Review {
   id: string;
   rating: number;
@@ -43,12 +53,13 @@ interface Review {
   reviewer: { name: string } | null;
 }
 
-
 function ProfilePage() {
-  const { profile, signOut } = useSession();
+  const { profile, refresh, signOut } = useSession();
   const nav = useNavigate();
+  const fileRef = useRef<HTMLInputElement>(null);
   const [badges, setBadges] = useState<{ badge_type: string }[] | null>(null);
   const [reviews, setReviews] = useState<Review[] | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     if (!profile) return;
@@ -90,27 +101,78 @@ function ProfilePage() {
     nav({ to: "/" });
   };
 
+  const onPickAvatar = () => fileRef.current?.click();
+
+  const onAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file || !profile) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please choose an image file");
+      return;
+    }
+    setUploading(true);
+    const ext = file.name.split(".").pop() || "jpg";
+    const path = `${profile.id}/avatar-${Date.now()}.${ext}`;
+    const { error: upErr } = await supabase.storage
+      .from("avatars")
+      .upload(path, file, { upsert: true, contentType: file.type });
+    if (upErr) {
+      setUploading(false);
+      return toast.error(upErr.message);
+    }
+    const { data: pub } = supabase.storage.from("avatars").getPublicUrl(path);
+    const url = pub.publicUrl;
+    const { error: profErr } = await supabase
+      .from("profiles")
+      .update({ avatar_url: url })
+      .eq("id", profile.id);
+    setUploading(false);
+    if (profErr) return toast.error(profErr.message);
+    toast.success("Profile picture updated");
+    refresh?.();
+  };
+
   return (
     <AppShell>
-      <PageHeader
-        title="Profile"
-        right={
-          <button
-            onClick={onSignOut}
-            className="size-10 grid place-items-center rounded-full bg-card border text-muted-foreground"
-            aria-label="Sign out"
-          >
-            <LogOut className="size-4" />
-          </button>
-        }
-      />
+      <PageHeader title="Profile" />
 
       <div className="container-app">
         <div className="rounded-3xl bg-card shadow-card overflow-hidden">
           <div className="h-16 bg-primary-soft" />
           <div className="-mt-12 flex flex-col items-center text-center px-5 pb-6">
-            <div className="size-24 rounded-full bg-primary text-primary-foreground grid place-items-center text-3xl font-bold border-4 border-card shadow-elevated">
-              {profile.name.charAt(0).toUpperCase()}
+            <div className="relative">
+              <div className="size-24 rounded-full bg-primary text-primary-foreground grid place-items-center text-3xl font-bold border-4 border-card shadow-elevated overflow-hidden">
+                {profile.avatar_url ? (
+                  <img
+                    src={profile.avatar_url}
+                    alt={profile.name}
+                    className="size-full object-cover"
+                  />
+                ) : (
+                  profile.name.charAt(0).toUpperCase()
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={onPickAvatar}
+                disabled={uploading}
+                className="absolute -bottom-1 -right-1 size-9 rounded-full bg-primary text-primary-foreground grid place-items-center shadow-elevated border-2 border-card disabled:opacity-60"
+                aria-label="Change profile picture"
+              >
+                {uploading ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <Camera className="size-4" />
+                )}
+              </button>
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={onAvatarChange}
+              />
             </div>
             <h2 className="mt-3 text-xl font-bold flex items-center gap-1.5">
               {profile.name}
@@ -137,7 +199,6 @@ function ProfilePage() {
         </div>
 
         {/* Caregiver: Care recipients */}
-        {/* Caregiver: Care recipients */}
         {!isVolunteer && (
           <>
             <h3 className="mt-7 mb-3 text-base font-bold">Care Recipients</h3>
@@ -163,7 +224,7 @@ function ProfilePage() {
           </>
         )}
 
-        {/* Reviews — for both roles */}
+        {/* Reviews */}
         <h3 className="mt-7 mb-3 text-base font-bold">Reviews</h3>
         <div className="rounded-2xl bg-card border p-4 shadow-card">
           {reviews === null ? (
@@ -229,10 +290,10 @@ function ProfilePage() {
                     return (
                       <div key={b.type} className="flex flex-col items-center text-center">
                         <div
-                          className={`size-16 rounded-full grid place-items-center relative ${
+                          className={`size-16 rounded-full grid place-items-center relative shadow-elevated ${
                             got
-                              ? "bg-primary text-primary-foreground shadow-elevated"
-                              : "bg-muted text-muted-foreground"
+                              ? BADGE_COLORS[b.type]
+                              : "bg-muted text-muted-foreground shadow-none"
                           }`}
                         >
                           <Icon className="size-7" />
@@ -258,12 +319,13 @@ function ProfilePage() {
           </>
         )}
 
-        <Link
-          to="/feed"
-          className="mt-6 mb-2 w-full rounded-full bg-primary text-primary-foreground py-3.5 font-semibold flex items-center justify-center gap-2 shadow-elevated"
+        {/* Logout */}
+        <button
+          onClick={onSignOut}
+          className="mt-7 mb-2 w-full rounded-full bg-destructive text-destructive-foreground py-3.5 font-semibold flex items-center justify-center gap-2 shadow-elevated active:scale-[0.99] transition-transform"
         >
-          <Mail className="size-4" /> View my tasks
-        </Link>
+          <LogOut className="size-5" /> Log out
+        </button>
       </div>
     </AppShell>
   );
