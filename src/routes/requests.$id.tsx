@@ -303,8 +303,8 @@ function TaskDetail() {
           </span>
         </div>
 
-        {/* PINs visible to caregiver (the requester) only */}
-        {isMine && r.status !== "completed" && (
+        {/* PINs visible to caregiver only after task is claimed */}
+        {isMine && r.status === "claimed" && (
           <div className="mt-4 rounded-2xl border border-primary/30 bg-primary-soft/40 p-4">
             <div className="flex items-center gap-2">
               <KeyRound className="size-4 text-primary" />
@@ -313,11 +313,11 @@ function TaskDetail() {
               </p>
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              Share these with the volunteer at the start and end of the visit.
+              Share the Start PIN now. The End PIN appears once the volunteer starts the task.
             </p>
             <div className="mt-3 grid grid-cols-2 gap-3">
               <PinBlock label="Start PIN" value={r.start_pin} />
-              <PinBlock label="End PIN" value={r.end_pin} />
+              <PinBlock label="End PIN" value={isStarted ? r.end_pin : null} />
             </div>
           </div>
         )}
@@ -403,6 +403,13 @@ function TaskDetail() {
                       </p>
                     </div>
                     <Link
+                      to="/profiles/$id"
+                      params={{ id: a.volunteer_id }}
+                      className="rounded-full bg-card border text-xs font-semibold px-3 py-2"
+                    >
+                      View
+                    </Link>
+                    <Link
                       to="/messages/$peerId"
                       params={{ peerId: a.volunteer_id }}
                       className="size-9 grid place-items-center rounded-full bg-muted text-muted-foreground"
@@ -415,7 +422,7 @@ function TaskDetail() {
                       onClick={() => confirmVolunteer(a.volunteer_id)}
                       className="rounded-full bg-primary text-primary-foreground text-xs font-semibold px-3 py-2 shadow-elevated disabled:opacity-50 flex items-center gap-1"
                     >
-                      <UserCheck className="size-3.5" /> Confirm
+                      <UserCheck className="size-3.5" /> Accept
                     </button>
                   </li>
                 ))}
