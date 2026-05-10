@@ -254,7 +254,7 @@ function ProfilePage() {
 
         {/* Reviews */}
         <h3 className="mt-7 mb-3 text-base font-bold">Reviews</h3>
-        <div className="rounded-2xl bg-card border p-4 shadow-card">
+        <div className="w-full max-w-full overflow-hidden rounded-2xl bg-card border p-4 shadow-card">
           {reviews === null ? (
             <div className="h-20 grid place-items-center">
               <Loader2 className="size-5 animate-spin text-muted-foreground" />
@@ -265,8 +265,8 @@ function ProfilePage() {
             </p>
           ) : (
             <div className="space-y-4">
-              <div className="flex items-center gap-4">
-                <div className="rounded-2xl bg-muted/50 px-4 py-3 text-center">
+              <div className="grid w-full grid-cols-[6rem_minmax(0,1fr)] items-center gap-4">
+                <div className="w-24 rounded-2xl bg-muted/50 px-4 py-3 text-center">
                   <p className="text-3xl font-bold text-primary leading-none">{avgRating}</p>
                   <div className="mt-1 flex justify-center gap-0.5">
                     {[1, 2, 3, 4, 5].map((n) => (
@@ -282,9 +282,9 @@ function ProfilePage() {
                     ))}
                   </div>
                 </div>
-                <div className="flex-1 min-w-0 text-sm">
+                <div className="min-w-0 text-sm">
                   {reviews[0].comment ? (
-                    <p className="italic text-muted-foreground line-clamp-4">
+                    <p className="break-words italic text-muted-foreground line-clamp-4">
                       “{reviews[0].comment}”
                     </p>
                   ) : (
@@ -292,7 +292,7 @@ function ProfilePage() {
                       {reviews.length} rating{reviews.length === 1 ? "" : "s"} from the community.
                     </p>
                   )}
-                  <p className="mt-1 text-xs text-muted-foreground">
+                  <p className="mt-1 truncate text-xs text-muted-foreground">
                     — {reviews[0].reviewer?.name ?? "Community member"}
                   </p>
                 </div>
