@@ -6,7 +6,7 @@ import { useSession } from "@/lib/session";
 import { supabase } from "@/integrations/supabase/client";
 import { Bell, Loader2, MapPin, Plus, Calendar, ChevronRight } from "lucide-react";
 import mascot from "@/assets/mascot.png";
-import { taskMeta } from "@/lib/tasks";
+import { taskMeta, priorityMeta } from "@/lib/tasks";
 import { formatDateFriendly, formatTimeFriendly, getGreeting } from "@/lib/format";
 import { toast } from "sonner";
 
@@ -31,6 +31,7 @@ interface RequestRow {
   started_at?: string | null;
   claimed_by: string | null;
   payment_amount?: number | null;
+  priority?: string | null;
   claimer?: { name: string } | null;
 }
 
@@ -227,6 +228,7 @@ function InProgressCard({ r }: { r: RequestRow }) {
 export function RequestCard({ r }: { r: RequestRow & { requester?: { name: string } | null } }) {
   const meta = taskMeta(r.task_type);
   const Icon = meta.icon;
+  const pri = priorityMeta(r.priority);
   const displayStatus = r.status === "claimed" && r.started_at ? "in progress" : r.status;
   const tone =
     r.status === "open"
@@ -249,7 +251,13 @@ export function RequestCard({ r }: { r: RequestRow & { requester?: { name: strin
               {displayStatus}
             </span>
           </div>
-          <p className="text-xs text-muted-foreground mt-1 capitalize">{meta.label}</p>
+          <div className="mt-1 flex items-center gap-2">
+            <p className="text-xs text-muted-foreground capitalize">{meta.label}</p>
+            <span className={`inline-flex items-center gap-1 text-[10px] font-semibold rounded-full px-2 py-0.5 border ${pri.chip}`}>
+              <span className={`size-1.5 rounded-full ${pri.dot}`} />
+              {pri.label} priority
+            </span>
+          </div>
           <div className="mt-3 space-y-1.5 text-xs text-muted-foreground">
             <div className="flex items-center gap-1.5">
               <MapPin className="size-3.5 shrink-0" />
