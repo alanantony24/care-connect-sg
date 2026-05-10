@@ -1,9 +1,11 @@
 import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { ArrowLeft, Info, Loader2, Send } from "lucide-react";
 import { useSession } from "@/lib/session";
 import { supabase } from "@/integrations/supabase/client";
 import { FeeReceipt } from "@/components/FeeReceipt";
+import { LocationPicker, type PickedLocation } from "@/components/LocationPicker";
+import { SENIORS } from "@/lib/seniors";
 import {
   MAX_TASK_PAYMENT,
   TASK_TYPES,
@@ -31,14 +33,22 @@ function NewRequest() {
   const nav = useNavigate();
   const [title, setTitle] = useState("");
   const [taskType, setTaskType] = useState<TaskType>("grocery");
+  const [seniorId, setSeniorId] = useState<string>(SENIORS[0]?.id ?? "");
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
-  const [location, setLocation] = useState("");
+  const [location, setLocation] = useState<PickedLocation | null>(null);
   const [notes, setNotes] = useState("");
-  const [payment, setPayment] = useState("10");
+  const [payment, setPayment] = useState("0");
   const [priority, setPriority] = useState<"low" | "normal" | "high">("normal");
   const [busy, setBusy] = useState(false);
   const suggestedPayment = paymentGuidance(taskType);
+  const todayStr = useMemo(() => {
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${dd}`;
+  }, []);
   const paymentInputRef = useRef<HTMLInputElement>(null);
   const paymentValue = clampTaskPayment(Number(payment) || 0);
   const platformFee = platformFeeFor(paymentValue);
