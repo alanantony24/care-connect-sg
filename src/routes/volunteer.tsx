@@ -4,7 +4,7 @@ import { AppShell, PageHeader } from "@/components/AppShell";
 import { MessagesFab } from "@/components/MessagesFab";
 import { useSession } from "@/lib/session";
 import { supabase } from "@/integrations/supabase/client";
-import { Bell, Loader2 } from "lucide-react";
+import { Bell, Loader2, Award, Heart } from "lucide-react";
 import { RequestCard, CardSkeleton, EmptyHint } from "./dashboard";
 import { getGreeting } from "@/lib/format";
 
@@ -75,9 +75,9 @@ function VolunteerHome() {
   // Next badge: Helping Hand at 5, Guardian Angel at 20
   const nextBadge =
     tasksHelped < 5
-      ? { name: "Helping Hand", target: 5, current: tasksHelped }
+      ? { name: "Helping Hand", target: 5, current: tasksHelped, Icon: Heart }
       : tasksHelped < 20
-        ? { name: "Guardian Angel", target: 20, current: tasksHelped }
+        ? { name: "Guardian Angel", target: 20, current: tasksHelped, Icon: Award }
         : null;
 
   return (
@@ -99,18 +99,28 @@ function VolunteerHome() {
         </div>
 
         {nextBadge && (
-          <div className="mt-4 rounded-2xl bg-primary text-primary-foreground p-4 shadow-elevated">
-            <p className="text-xs uppercase tracking-wider opacity-90">Next badge</p>
-            <p className="text-lg font-semibold mt-1">{nextBadge.name}</p>
-            <div className="mt-3 h-2 rounded-full bg-primary-foreground/20 overflow-hidden">
-              <div
-                className="h-full bg-primary-foreground"
-                style={{ width: `${(nextBadge.current / nextBadge.target) * 100}%` }}
-              />
+          <div className="mt-4 rounded-2xl p-4 shadow-elevated text-white relative overflow-hidden bg-gradient-to-br from-amber-400 via-amber-500 to-yellow-600">
+            <div className="absolute -right-6 -top-6 size-24 rounded-full bg-white/15 blur-xl" />
+            <div className="relative flex items-start gap-3">
+              <span className="size-12 grid place-items-center rounded-2xl bg-white/20 backdrop-blur shrink-0">
+                <nextBadge.Icon className="size-6" />
+              </span>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs uppercase tracking-wider opacity-95 font-semibold">
+                  Next badge
+                </p>
+                <p className="text-lg font-bold mt-0.5 leading-tight">{nextBadge.name}</p>
+                <div className="mt-2.5 h-2 rounded-full bg-white/25 overflow-hidden">
+                  <div
+                    className="h-full bg-white rounded-full"
+                    style={{ width: `${(nextBadge.current / nextBadge.target) * 100}%` }}
+                  />
+                </div>
+                <p className="text-xs opacity-95 mt-1.5 font-medium">
+                  {nextBadge.current}/{nextBadge.target} tasks
+                </p>
+              </div>
             </div>
-            <p className="text-xs opacity-90 mt-2">
-              {nextBadge.current}/{nextBadge.target} tasks
-            </p>
           </div>
         )}
 

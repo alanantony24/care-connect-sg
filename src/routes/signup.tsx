@@ -60,7 +60,7 @@ function SignupPage() {
         </Field>
 
         <div>
-          <span className="block text-sm font-medium mb-1.5">I want to</span>
+          <span className="block text-sm font-medium mb-1.5">I am a</span>
           <div className="grid grid-cols-2 gap-3">
             {(["caregiver", "volunteer"] as const).map((r) => (
               <button
@@ -73,7 +73,7 @@ function SignupPage() {
                     : "bg-card border-border hover:border-primary/30"
                 }`}
               >
-                <p className="font-semibold">{r === "caregiver" ? "I'm a Caregiver" : "I'm a Volunteer"}</p>
+                <p className="font-semibold">{r === "caregiver" ? "Caregiver" : "Volunteer"}</p>
                 <p className="text-xs text-muted-foreground mt-1">
                   {r === "caregiver" ? "Post care tasks" : "Pick up tasks nearby"}
                 </p>
