@@ -1,6 +1,7 @@
+import { supabase } from "@/integrations/supabase/client";
+
 // AI Care Notes Assistant helper.
-// Tries Cloudflare Workers AI (SEA-LION) when configured; falls back to a
-// local formatter so the demo always works.
+// Calls the backend function so Cloudflare credentials stay private.
 
 const SYSTEM_PROMPT = `You are helping a caregiver in Singapore prepare safe, clear instructions for a volunteer who will support a low-risk, non-medical caregiving task.
 
@@ -81,41 +82,19 @@ function localFallback(rawNote: string): string {
 }
 
 export async function generateCareNote(rawNote: string): Promise<{ text: string; source: "sea-lion" | "fallback" }> {
-  const accountId = (import.meta as any).env?.VITE_CLOUDFLARE_ACCOUNT_ID as string | undefined;
-  const apiToken = (import.meta as any).env?.VITE_CLOUDFLARE_API_TOKEN as string | undefined;
+  const { data, error } = await supabase.functions.invoke("care-notes", {
+    body: { rawNote },
+  });
 
-  if (accountId && apiToken) {
-    try {
-      const res = await fetch(
-        `https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/@cf/aisingapore/gemma-sea-lion-v4-27b-it`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${apiToken}`,
-          },
-          body: JSON.stringify({
-            messages: [
-              { role: "system", content: SYSTEM_PROMPT },
-              { role: "user", content: `Caregiver note:\n${rawNote}` },
-            ],
-          }),
-        }
-      );
-      if (!res.ok) throw new Error(`Cloudflare AI error ${res.status}`);
-      const json = await res.json();
-      const text: string | undefined = json?.result?.response ?? json?.result?.output_text;
-      if (text && text.trim().length > 0) {
-        return { text: text.trim(), source: "sea-lion" };
-      }
-      throw new Error("Empty AI response");
-    } catch (err) {
-      console.warn("SEA-LION call failed, using fallback:", err);
-      return { text: localFallback(rawNote), source: "fallback" };
-    }
+  if (error) {
+    throw new Error(error.message || "AI service could not generate notes.");
   }
 
-  return { text: localFallback(rawNote), source: "fallback" };
+  if (!data?.text) {
+    throw new Error(data?.error || "AI returned an empty response.");
+  }
+
+  return { text: data.text, source: "sea-lion" };
 }
 
 export const CARE_NOTE_EXAMPLES = [
