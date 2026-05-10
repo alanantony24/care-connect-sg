@@ -6,6 +6,7 @@ import { useSession } from "@/lib/session";
 import { supabase } from "@/integrations/supabase/client";
 import { Bell, Loader2 } from "lucide-react";
 import { RequestCard, CardSkeleton, EmptyHint } from "./dashboard";
+import { getGreeting } from "@/lib/format";
 
 export const Route = createFileRoute("/volunteer")({
   beforeLoad: async () => {
