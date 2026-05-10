@@ -33,6 +33,7 @@ function SignupPage() {
   const [notes, setNotes] = useState("");
   const [certFile, setCertFile] = useState<File | null>(null);
 
+  const [langInput, setLangInput] = useState("");
   const [busy, setBusy] = useState(false);
 
   const toggleLang = (l: string) =>
