@@ -11,7 +11,7 @@ export const Route = createFileRoute("/signup")({
   component: SignupPage,
 });
 
-const LANGUAGE_OPTIONS = ["English", "Mandarin", "Malay", "Tamil", "Hokkien", "Cantonese", "Teochew"];
+const LANGUAGE_SUGGESTIONS = ["English", "Mandarin", "Malay", "Tamil", "Hokkien", "Cantonese", "Teochew"];
 
 function SignupPage() {
   const nav = useNavigate();
