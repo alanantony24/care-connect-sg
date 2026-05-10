@@ -244,9 +244,7 @@ function TaskDetail() {
 
             <div className="mt-7">
               <h1 className="text-3xl font-bold leading-tight">{r.title}</h1>
-              <p className="mt-2 text-base leading-7 text-muted-foreground">
-                {r.notes ?? "No additional notes provided."}
-              </p>
+              <FormattedNotes notes={r.notes} />
             </div>
 
             <div className="mt-6 border-t pt-5 space-y-4">
