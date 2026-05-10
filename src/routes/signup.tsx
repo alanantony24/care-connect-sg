@@ -223,24 +223,57 @@ function SignupPage() {
 
             <div>
               <span className="block text-sm font-medium mb-1.5">Languages you speak</span>
-              <div className="flex flex-wrap gap-2">
-                {LANGUAGE_OPTIONS.map((l) => {
-                  const on = languages.includes(l);
-                  return (
-                    <button
-                      type="button"
-                      key={l}
-                      onClick={() => toggleLang(l)}
-                      className={`rounded-full px-3.5 py-1.5 text-sm border transition-colors ${
-                        on
-                          ? "bg-primary text-primary-foreground border-primary"
-                          : "bg-card border-border"
-                      }`}
-                    >
-                      {l}
-                    </button>
-                  );
-                })}
+              <div className="flex flex-wrap gap-2 mb-2">
+                {languages.map((l) => (
+                  <button
+                    type="button"
+                    key={l}
+                    onClick={() => toggleLang(l)}
+                    className="rounded-full px-3 py-1.5 text-sm bg-primary text-primary-foreground border border-primary"
+                  >
+                    {l} ✕
+                  </button>
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <input
+                  value={langInput}
+                  onChange={(e) => setLangInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && langInput.trim()) {
+                      e.preventDefault();
+                      const v = langInput.trim();
+                      if (!languages.includes(v)) setLanguages([...languages, v]);
+                      setLangInput("");
+                    }
+                  }}
+                  className="kinput flex-1"
+                  placeholder="Type a language and press Enter"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    const v = langInput.trim();
+                    if (v && !languages.includes(v)) setLanguages([...languages, v]);
+                    setLangInput("");
+                  }}
+                  className="rounded-2xl border bg-card px-4 text-sm font-semibold"
+                >
+                  Add
+                </button>
+              </div>
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                <span className="text-xs text-muted-foreground self-center">Suggestions:</span>
+                {LANGUAGE_SUGGESTIONS.filter((l) => !languages.includes(l)).map((l) => (
+                  <button
+                    type="button"
+                    key={l}
+                    onClick={() => setLanguages([...languages, l])}
+                    className="rounded-full px-2.5 py-1 text-xs border bg-card text-muted-foreground hover:text-foreground"
+                  >
+                    + {l}
+                  </button>
+                ))}
               </div>
             </div>
 
