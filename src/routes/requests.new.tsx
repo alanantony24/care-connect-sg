@@ -1,9 +1,9 @@
 import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
-import { ArrowLeft, Loader2, Send } from "lucide-react";
+import { useRef, useState } from "react";
+import { ArrowLeft, Info, Loader2, Send } from "lucide-react";
 import { useSession } from "@/lib/session";
 import { supabase } from "@/integrations/supabase/client";
-import { TASK_TYPES, type TaskType } from "@/lib/tasks";
+import { TASK_TYPES, paymentGuidance, type TaskType } from "@/lib/tasks";
 import { toast } from "sonner";
 import { Style } from "./login";
 
@@ -26,6 +26,17 @@ function NewRequest() {
   const [notes, setNotes] = useState("");
   const [payment, setPayment] = useState("10");
   const [busy, setBusy] = useState(false);
+  const suggestedPayment = paymentGuidance(taskType);
+  const paymentInputRef = useRef<HTMLInputElement>(null);
+
+  const useSuggestedPayment = () => {
+    const amount = String(suggestedPayment.amount);
+    setPayment(amount);
+    if (paymentInputRef.current) {
+      paymentInputRef.current.value = amount;
+      paymentInputRef.current.focus();
+    }
+  };
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,7 +67,10 @@ function NewRequest() {
   return (
     <div className="min-h-screen container-app pt-6 pb-10">
       <div className="flex items-center justify-between mb-3">
-        <Link to="/dashboard" className="size-10 grid place-items-center rounded-full bg-card border">
+        <Link
+          to="/dashboard"
+          className="size-10 grid place-items-center rounded-full bg-card border"
+        >
           <ArrowLeft className="size-5" />
         </Link>
         <p className="text-primary font-bold tracking-tight">Komunity</p>
@@ -95,9 +109,7 @@ function NewRequest() {
                     active ? "border-primary bg-primary-soft" : "bg-card"
                   }`}
                 >
-                  <Icon
-                    className={`size-5 ${active ? "text-primary" : "text-muted-foreground"}`}
-                  />
+                  <Icon className={`size-5 ${active ? "text-primary" : "text-muted-foreground"}`} />
                   <span className="text-xs font-medium">{t.label}</span>
                 </button>
               );
@@ -147,18 +159,41 @@ function NewRequest() {
         </Field>
 
         <Field label="Payment offered (SGD)">
+          <div className="mb-3 rounded-2xl border border-primary/25 bg-primary-soft/40 p-4">
+            <div className="flex items-start gap-3">
+              <span className="size-9 shrink-0 rounded-full bg-card text-primary grid place-items-center">
+                <Info className="size-4" />
+              </span>
+              <div className="min-w-0">
+                <p className="text-sm font-semibold">
+                  Suggested amount: S${suggestedPayment.amount} ({suggestedPayment.range})
+                </p>
+                <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                  {suggestedPayment.reason}
+                </p>
+                <button
+                  type="button"
+                  onClick={useSuggestedPayment}
+                  className="mt-3 text-xs font-semibold text-primary"
+                >
+                  Use suggested amount
+                </button>
+              </div>
+            </div>
+          </div>
           <div className="relative">
             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-semibold">
               S$
             </span>
             <input
+              ref={paymentInputRef}
               required
               type="number"
               min={0}
               step={1}
               value={payment}
               onChange={(e) => setPayment(e.target.value)}
-              className="kinput pl-10"
+              className="kinput kinput-money"
               placeholder="10"
             />
           </div>
@@ -177,15 +212,16 @@ function NewRequest() {
         </button>
       </form>
       <Style />
+      <style>{`.kinput-money{padding-left:2.9rem!important;}`}</style>
     </div>
   );
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <label className="block">
+    <div className="block">
       <span className="block text-sm font-medium mb-1.5">{label}</span>
       {children}
-    </label>
+    </div>
   );
 }
