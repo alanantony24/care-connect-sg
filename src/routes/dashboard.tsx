@@ -6,7 +6,7 @@ import { useSession } from "@/lib/session";
 import { supabase } from "@/integrations/supabase/client";
 import { Bell, Loader2, MapPin, Plus, Calendar, ChevronRight } from "lucide-react";
 import mascot from "@/assets/mascot.png";
-import { taskMeta } from "@/lib/tasks";
+import { taskMeta, priorityMeta } from "@/lib/tasks";
 import { formatDateFriendly, formatTimeFriendly, getGreeting } from "@/lib/format";
 import { toast } from "sonner";
 
