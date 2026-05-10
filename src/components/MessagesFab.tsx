@@ -35,12 +35,13 @@ export function MessagesFab() {
   return (
     <Link
       to="/messages"
-      aria-label="Messages"
-      className="fixed bottom-28 right-5 z-30 size-14 grid place-items-center rounded-full bg-primary text-primary-foreground shadow-elevated active:scale-95 transition-transform"
+      aria-label="Chat"
+      className="fixed bottom-28 right-5 z-30 inline-flex items-center gap-2 rounded-full bg-primary text-primary-foreground pl-4 pr-5 py-3 font-semibold shadow-elevated active:scale-95 transition-transform"
     >
-      <MessageCircle className="size-6" />
+      <MessageCircle className="size-5" />
+      <span className="text-sm">Chat</span>
       {unread > 0 && (
-        <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1 rounded-full bg-destructive text-destructive-foreground text-[11px] font-bold grid place-items-center border-2 border-background">
+        <span className="ml-0.5 min-w-5 h-5 px-1.5 rounded-full bg-destructive text-destructive-foreground text-[11px] font-bold grid place-items-center">
           {unread > 9 ? "9+" : unread}
         </span>
       )}
