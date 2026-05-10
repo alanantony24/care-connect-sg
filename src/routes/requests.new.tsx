@@ -5,6 +5,7 @@ import { useSession } from "@/lib/session";
 import { supabase } from "@/integrations/supabase/client";
 import { FeeReceipt } from "@/components/FeeReceipt";
 import { LocationPicker, type PickedLocation } from "@/components/LocationPicker";
+import { TimeDial } from "@/components/TimeDial";
 import { SENIORS } from "@/lib/seniors";
 import {
   MAX_TASK_PAYMENT,
