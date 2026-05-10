@@ -228,6 +228,7 @@ function InProgressCard({ r }: { r: RequestRow }) {
 export function RequestCard({ r }: { r: RequestRow & { requester?: { name: string } | null } }) {
   const meta = taskMeta(r.task_type);
   const Icon = meta.icon;
+  const pri = priorityMeta(r.priority);
   const displayStatus = r.status === "claimed" && r.started_at ? "in progress" : r.status;
   const tone =
     r.status === "open"
@@ -250,7 +251,13 @@ export function RequestCard({ r }: { r: RequestRow & { requester?: { name: strin
               {displayStatus}
             </span>
           </div>
-          <p className="text-xs text-muted-foreground mt-1 capitalize">{meta.label}</p>
+          <div className="mt-1 flex items-center gap-2">
+            <p className="text-xs text-muted-foreground capitalize">{meta.label}</p>
+            <span className={`inline-flex items-center gap-1 text-[10px] font-semibold rounded-full px-2 py-0.5 border ${pri.chip}`}>
+              <span className={`size-1.5 rounded-full ${pri.dot}`} />
+              {pri.label} priority
+            </span>
+          </div>
           <div className="mt-3 space-y-1.5 text-xs text-muted-foreground">
             <div className="flex items-center gap-1.5">
               <MapPin className="size-3.5 shrink-0" />
