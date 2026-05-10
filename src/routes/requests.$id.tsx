@@ -189,11 +189,15 @@ function TaskDetail() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          {urgent && (
-            <span className="rounded-full bg-destructive/10 text-destructive text-xs font-semibold px-3 py-1.5">
-              ● High priority
-            </span>
-          )}
+          {(() => {
+            const pri = priorityMeta(r.priority);
+            return (
+              <span className={`inline-flex items-center gap-1.5 rounded-full text-xs font-semibold px-3 py-1.5 border ${pri.chip}`}>
+                <span className={`size-2 rounded-full ${pri.dot}`} />
+                {pri.label} priority
+              </span>
+            );
+          })()}
           <span className="rounded-full bg-primary-soft text-primary text-xs font-semibold px-3 py-1.5 capitalize">
             {meta.label}
           </span>
