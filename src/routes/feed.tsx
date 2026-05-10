@@ -159,7 +159,7 @@ function Feed() {
           ) : visible.length === 0 ? (
             <EmptyHint title={`No ${tab === "pending" ? "open" : tab} tasks`} />
           ) : (
-            <GroupedByCategory rows={visible} />
+            <GroupedByCategory rows={visible} role={profile.role} />
           )}
         </div>
       </div>
@@ -167,8 +167,9 @@ function Feed() {
   );
 }
 
-function GroupedByCategory({ rows }: { rows: RequestRow[] }) {
+function GroupedByCategory({ rows, role }: { rows: RequestRow[]; role: string }) {
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const [sort, setSort] = useState<"type" | "date">("type");
 
   // Group by task_type, preserving TASK_TYPES order
   const groups = TASK_TYPES.map((t) => ({
@@ -180,75 +181,94 @@ function GroupedByCategory({ rows }: { rows: RequestRow[] }) {
 
   if (groups.length === 0) return null;
 
-  const scrollTo = (key: string) => {
-    sectionRefs.current[key]?.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
+  const isVolunteer = role === "volunteer";
+  const sortedByDate = [...rows].sort(
+    (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+  );
 
   return (
     <div>
-      {/* Summary dashboard */}
-      <div className="rounded-2xl bg-card border p-4 shadow-card">
-        <p className="text-xs font-semibold tracking-wider text-muted-foreground uppercase mb-3">
-          Summary
-        </p>
-        <div className="grid grid-cols-3 gap-2.5">
+      {isVolunteer ? (
+        <div className="rounded-2xl bg-card border p-3 shadow-card flex items-center gap-3">
+          <label htmlFor="sort-by" className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+            Sort by
+          </label>
+          <select
+            id="sort-by"
+            value={sort}
+            onChange={(e) => setSort(e.target.value as "type" | "date")}
+            className="flex-1 rounded-lg border bg-background px-3 py-2 text-sm font-medium"
+          >
+            <option value="type">Type</option>
+            <option value="date">Post date</option>
+          </select>
+        </div>
+      ) : (
+        <div className="rounded-2xl bg-card border p-4 shadow-card">
+          <p className="text-xs font-semibold tracking-wider text-muted-foreground uppercase mb-3">
+            Summary
+          </p>
+          <div className="grid grid-cols-3 gap-2.5">
+            {groups.map((g) => {
+              const style = taskBadgeStyle(g.type);
+              const Icon = g.Icon;
+              return (
+                <button
+                  key={g.type}
+                  type="button"
+                  onClick={() => sectionRefs.current[g.type]?.scrollIntoView({ behavior: "smooth", block: "start" })}
+                  className={`relative overflow-hidden flex flex-col items-center gap-1.5 rounded-xl border ${style.glass} p-3 transition-transform active:scale-[0.98] backdrop-blur-xl`}
+                >
+                  <span className={`absolute -right-5 -top-6 size-16 rounded-full ${style.glow} blur-2xl`} />
+                  <span className={`relative size-9 grid place-items-center rounded-lg ${style.icon}`}>
+                    <Icon className="size-4" strokeWidth={2.3} />
+                  </span>
+                  <p className="relative text-lg font-bold leading-none">{g.items.length}</p>
+                  <p className="relative text-[11px] font-medium text-white/70 leading-tight">{g.label}</p>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Sections */}
+      {isVolunteer && sort === "date" ? (
+        <div className="mt-5 space-y-3">
+          {sortedByDate.map((r) => (
+            <RequestCard key={r.id} r={r} />
+          ))}
+        </div>
+      ) : (
+        <div className="mt-5 space-y-6">
           {groups.map((g) => {
             const style = taskBadgeStyle(g.type);
             const Icon = g.Icon;
             return (
-              <button
+              <section
                 key={g.type}
-                type="button"
-                onClick={() => scrollTo(g.type)}
-                className={`relative overflow-hidden flex flex-col items-center gap-1.5 rounded-xl border ${style.glass} p-3 transition-transform active:scale-[0.98] backdrop-blur-xl`}
+                ref={(el: HTMLElement | null) => {
+                  sectionRefs.current[g.type] = el as HTMLDivElement | null;
+                }}
+                className="scroll-mt-20"
               >
-                <span
-                  className={`absolute -right-5 -top-6 size-16 rounded-full ${style.glow} blur-2xl`}
-                />
-                <span
-                  className={`relative size-9 grid place-items-center rounded-lg ${style.icon}`}
-                >
-                  <Icon className="size-4" strokeWidth={2.3} />
-                </span>
-                <p className="relative text-lg font-bold leading-none">{g.items.length}</p>
-                <p className="relative text-[11px] font-medium text-white/70 leading-tight">
-                  {g.label}
-                </p>
-              </button>
+                <div className="flex items-center gap-2 mb-3">
+                  <span className={`size-7 grid place-items-center rounded-lg ${style.section}`}>
+                    <Icon className="size-4" strokeWidth={2.3} />
+                  </span>
+                  <h3 className="text-sm font-bold">{g.label}</h3>
+                  <span className="text-xs text-muted-foreground">({g.items.length})</span>
+                </div>
+                <div className="space-y-3">
+                  {g.items.map((r) => (
+                    <RequestCard key={r.id} r={r} />
+                  ))}
+                </div>
+              </section>
             );
           })}
         </div>
-      </div>
-
-      {/* Grouped sections */}
-      <div className="mt-5 space-y-6">
-        {groups.map((g) => {
-          const style = taskBadgeStyle(g.type);
-          const Icon = g.Icon;
-          return (
-            <section
-              key={g.type}
-              ref={(el: HTMLElement | null) => {
-                sectionRefs.current[g.type] = el as HTMLDivElement | null;
-              }}
-              className="scroll-mt-20"
-            >
-              <div className="flex items-center gap-2 mb-3">
-                <span className={`size-7 grid place-items-center rounded-lg ${style.section}`}>
-                  <Icon className="size-4" strokeWidth={2.3} />
-                </span>
-                <h3 className="text-sm font-bold">{g.label}</h3>
-                <span className="text-xs text-muted-foreground">({g.items.length})</span>
-              </div>
-              <div className="space-y-3">
-                {g.items.map((r) => (
-                  <RequestCard key={r.id} r={r} />
-                ))}
-              </div>
-            </section>
-          );
-        })}
-      </div>
+      )}
     </div>
   );
 }
