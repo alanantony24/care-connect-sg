@@ -62,6 +62,7 @@ serve(async (req) => {
             { role: "system", content: SYSTEM_PROMPT },
             { role: "user", content: `Caregiver note:\n${rawNote.trim()}` },
           ],
+          max_tokens: 1024,
         }),
       }
     );
