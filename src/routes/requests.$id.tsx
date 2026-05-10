@@ -382,6 +382,14 @@ function TaskDetail() {
                       </p>
                     </div>
                     <Link
+                      to="/profiles/$id"
+                      params={{ id: a.volunteer_id }}
+                      className="rounded-full bg-card border text-xs font-semibold px-3 py-2 flex items-center gap-1 hover:border-primary/40"
+                      aria-label="View volunteer profile"
+                    >
+                      <Eye className="size-3.5" /> View
+                    </Link>
+                    <Link
                       to="/messages/$peerId"
                       params={{ peerId: a.volunteer_id }}
                       className="size-9 grid place-items-center rounded-full bg-muted text-muted-foreground"
