@@ -66,16 +66,16 @@ function NewRequest() {
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!profile) return;
-    const finalPayment = clampTaskPayment(Number(payment) || 0);
+    if (!location) return toast.error("Please pick a location on the map");
     setBusy(true);
     const { error } = await supabase.from("requests").insert({
       title,
       task_type: taskType,
       date_needed: date,
       time_needed: time,
-      location,
+      location: location.label,
       notes: notes || null,
-      payment_amount: Number(payment) || 0,
+      payment_amount: clampTaskPayment(Number(payment) || 0),
       priority,
       requester_id: profile.id,
     });
@@ -120,6 +120,23 @@ function NewRequest() {
             placeholder="e.g. Weekly grocery run"
           />
         </Field>
+
+        {SENIORS.length > 1 && (
+          <Field label="Care recipient">
+            <select
+              required
+              value={seniorId}
+              onChange={(e) => setSeniorId(e.target.value)}
+              className="kinput"
+            >
+              {SENIORS.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.name} · {s.relation}
+                </option>
+              ))}
+            </select>
+          </Field>
+        )}
 
         <div>
           <span className="block text-sm font-medium mb-2">Task type</span>
