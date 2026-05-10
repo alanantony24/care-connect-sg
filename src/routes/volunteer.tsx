@@ -6,6 +6,7 @@ import { useSession } from "@/lib/session";
 import { supabase } from "@/integrations/supabase/client";
 import { Bell, Loader2 } from "lucide-react";
 import { RequestCard, CardSkeleton, EmptyHint } from "./dashboard";
+import { getGreeting } from "@/lib/format";
 
 export const Route = createFileRoute("/volunteer")({
   beforeLoad: async () => {
@@ -83,8 +84,8 @@ function VolunteerHome() {
   return (
     <AppShell>
       <PageHeader
-        title={`Hi, ${profile.name.split(" ")[0]}`}
-        subtitle="Help your community today."
+        title={`${getGreeting()},`}
+        subtitle={profile.name.split(" ")[0]}
         right={
           <span className="size-10 grid place-items-center rounded-full bg-card border">
             <Bell className="size-5" />

@@ -21,6 +21,7 @@ import {
   UserCheck,
   Hourglass,
 } from "lucide-react";
+import { formatDateFriendly, formatTimeFriendly } from "@/lib/format";
 
 export const Route = createFileRoute("/requests/$id")({
   beforeLoad: async () => {
@@ -214,13 +215,23 @@ function TaskDetail() {
           <Row
             icon={<Calendar className="size-5" />}
             label="Date & time"
-            text={`${r.date_needed} · ${r.time_needed}`}
+            text={`${formatDateFriendly(r.date_needed)}, ${formatTimeFriendly(r.time_needed)}`}
           />
           <Row icon={<MapPin className="size-5" />} label="Location" text={r.location} />
           <Row
             icon={<Clock className="size-5" />}
             label="Posted"
             text={`${Math.max(1, Math.round(ageHours))}h ago`}
+          />
+        </div>
+
+        <div className="mt-4 rounded-2xl overflow-hidden border shadow-card bg-muted">
+          <iframe
+            title="Task location map"
+            src={`https://www.google.com/maps?q=${encodeURIComponent(`${r.location}, Singapore`)}&output=embed`}
+            className="w-full h-48 border-0"
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
           />
         </div>
 
