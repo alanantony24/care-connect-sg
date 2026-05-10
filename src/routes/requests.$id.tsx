@@ -280,8 +280,8 @@ function TaskDetail() {
           </div>
         )}
 
-        {/* PINs visible to caregiver (the requester) only */}
-        {isMine && r.status === "claimed" && isStarted && (
+        {/* PINs visible to caregiver only after task is confirmed */}
+        {isMine && r.status === "claimed" && (
           <div className="mt-4 rounded-2xl border border-primary/30 bg-primary-soft/40 p-4">
             <div className="flex items-center gap-2">
               <KeyRound className="size-4 text-primary" />
@@ -290,11 +290,13 @@ function TaskDetail() {
               </p>
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              Share these with the volunteer at the start and end of the visit.
+              {isStarted
+                ? "Share the End PIN with the volunteer when the task is complete."
+                : "Share the Start PIN with the volunteer to begin. End PIN will appear once started."}
             </p>
             <div className="mt-3 grid grid-cols-2 gap-3">
-              <PinBlock label="Start PIN" value={r.start_pin} />
-              <PinBlock label="End PIN" value={r.end_pin} />
+              <PinBlock label="Start PIN" value={isStarted ? "✓" : r.start_pin} />
+              <PinBlock label="End PIN" value={isStarted ? r.end_pin : "----"} />
             </div>
           </div>
         )}
