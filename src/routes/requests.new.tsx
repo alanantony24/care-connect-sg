@@ -175,7 +175,7 @@ function NewRequest() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-3 items-end">
           <Field label="Date">
             <input
               required
@@ -183,7 +183,7 @@ function NewRequest() {
               min={todayStr}
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className="kinput"
+              className="kinput h-[3.35rem]"
             />
           </Field>
           <Field label="Time">
