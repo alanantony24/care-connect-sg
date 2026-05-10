@@ -68,9 +68,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         content:
           "A peer-to-peer caregiving volunteer platform for Singapore — caregivers post tasks, volunteers help out.",
       },
-      { property: "og:title", content: "Komunity" },
-      { property: "og:description", content: "Caregiving, together." },
+      { property: "og:title", content: "Komunity · Caregiving, together." },
+      { property: "og:description", content: "Care Connect SG is a mobile-first web app for coordinating eldercare support in Singapore." },
       { property: "og:type", content: "website" },
+      { name: "twitter:title", content: "Komunity · Caregiving, together." },
+      { name: "description", content: "Care Connect SG is a mobile-first web app for coordinating eldercare support in Singapore." },
+      { name: "twitter:description", content: "Care Connect SG is a mobile-first web app for coordinating eldercare support in Singapore." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/4a38d115-3a15-4158-b21e-4155360682f9/id-preview-97788bb3--1da17873-3700-4f7e-89c6-362efb4bde25.lovable.app-1778388468758.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/4a38d115-3a15-4158-b21e-4155360682f9/id-preview-97788bb3--1da17873-3700-4f7e-89c6-362efb4bde25.lovable.app-1778388468758.png" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
