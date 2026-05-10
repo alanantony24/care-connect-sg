@@ -23,34 +23,70 @@ interface RequestRow {
   time_needed: string;
   status: string;
   created_at: string;
+  started_at?: string | null;
   claimed_by: string | null;
   requester_id: string;
+  payment_amount?: number | null;
   requester?: { name: string } | null;
   claimer?: { name: string } | null;
 }
 
-const TABS = ["pending", "accepted", "completed"] as const;
-type Tab = (typeof TABS)[number];
+const CAREGIVER_TABS = ["pending", "confirmed", "completed"] as const;
+const VOLUNTEER_TABS = ["all", "applied", "confirmed", "completed"] as const;
+type CTab = (typeof CAREGIVER_TABS)[number];
+type VTab = (typeof VOLUNTEER_TABS)[number];
 
 function Feed() {
   const { profile } = useSession();
   const [rows, setRows] = useState<RequestRow[] | null>(null);
-  const [tab, setTab] = useState<Tab>("pending");
+  const [appliedIds, setAppliedIds] = useState<Set<string>>(new Set());
+  const [tab, setTab] = useState<CTab | VTab>("pending");
 
   useEffect(() => {
     if (!profile) return;
-    const q = supabase
-      .from("requests")
-      .select(
-        "*, requester:profiles!requests_requester_id_fkey(name), claimer:profiles!requests_claimed_by_fkey(name)",
-      )
-      .order("created_at", { ascending: false })
-      .limit(50);
-    const filtered =
-      profile.role === "caregiver"
-        ? q.eq("requester_id", profile.id)
-        : q.or(`status.eq.open,claimed_by.eq.${profile.id}`);
-    filtered.then(({ data }) => setRows((data ?? []) as RequestRow[]));
+    setTab(profile.role === "caregiver" ? "pending" : "all");
+  }, [profile]);
+
+  useEffect(() => {
+    if (!profile) return;
+
+    const loadRequests = async () => {
+      let q = supabase
+        .from("requests")
+        .select(
+          "*, requester:profiles!requests_requester_id_fkey(name), claimer:profiles!requests_claimed_by_fkey(name)",
+        )
+        .order("created_at", { ascending: false })
+        .limit(100);
+      const filtered =
+        profile.role === "caregiver"
+          ? q.eq("requester_id", profile.id)
+          : q;
+      const { data } = await filtered;
+      setRows((data ?? []) as RequestRow[]);
+    };
+
+    const loadApps = async () => {
+      if (profile.role !== "volunteer") return;
+      const { data } = await supabase
+        .from("applications")
+        .select("request_id")
+        .eq("volunteer_id", profile.id)
+        .eq("status", "pending");
+      setAppliedIds(new Set((data ?? []).map((a: any) => a.request_id)));
+    };
+
+    loadRequests();
+    loadApps();
+
+    const channel = supabase
+      .channel(`feed-${profile.id}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "requests" }, () => loadRequests())
+      .on("postgres_changes", { event: "*", schema: "public", table: "applications" }, () => loadApps())
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [profile]);
 
   if (!profile) {
@@ -64,12 +100,24 @@ function Feed() {
   }
 
   const list = rows ?? [];
-  const buckets: Record<Tab, RequestRow[]> = {
-    pending: list.filter((r) => r.status === "open"),
-    accepted: list.filter((r) => r.status === "claimed"),
-    completed: list.filter((r) => r.status === "completed"),
-  };
-  const visible = buckets[tab];
+  const tabs = profile.role === "caregiver" ? CAREGIVER_TABS : VOLUNTEER_TABS;
+
+  let visible: RequestRow[] = [];
+  if (profile.role === "caregiver") {
+    if (tab === "pending") visible = list.filter((r) => r.status === "open");
+    else if (tab === "confirmed")
+      visible = list.filter((r) => r.status === "claimed");
+    else if (tab === "completed") visible = list.filter((r) => r.status === "completed");
+  } else {
+    if (tab === "all")
+      visible = list.filter((r) => r.status === "open" && !appliedIds.has(r.id));
+    else if (tab === "applied")
+      visible = list.filter((r) => r.status === "open" && appliedIds.has(r.id));
+    else if (tab === "confirmed")
+      visible = list.filter((r) => r.status === "claimed" && r.claimed_by === profile.id);
+    else if (tab === "completed")
+      visible = list.filter((r) => r.status === "completed" && r.claimed_by === profile.id);
+  }
 
   return (
     <AppShell>
@@ -88,12 +136,12 @@ function Feed() {
         }
       />
       <div className="container-app">
-        <div className="border-b flex">
-          {TABS.map((t) => (
+        <div className="border-b flex overflow-x-auto no-scrollbar -mx-1 px-1">
+          {tabs.map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
-              className={`flex-1 py-3 text-sm font-semibold capitalize border-b-2 transition-colors ${
+              className={`flex-1 min-w-fit px-3 py-3 text-sm font-semibold capitalize border-b-2 transition-colors whitespace-nowrap ${
                 tab === t
                   ? "border-primary text-primary"
                   : "border-transparent text-muted-foreground"
