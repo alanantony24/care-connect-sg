@@ -148,13 +148,14 @@ function TaskDetail() {
   };
 
   const confirmVolunteer = async (volunteerId: string) => {
-    setBusy(true);
+    setConfirmingId(volunteerId);
     const { error: e1 } = await supabase
       .from("requests")
       .update({ status: "claimed", claimed_by: volunteerId })
-      .eq("id", id);
+      .eq("id", id)
+      .eq("status", "open");
     if (e1) {
-      setBusy(false);
+      setConfirmingId(null);
       return toast.error(e1.message);
     }
     await supabase
@@ -168,7 +169,7 @@ function TaskDetail() {
       .eq("request_id", id)
       .neq("volunteer_id", volunteerId)
       .eq("status", "pending");
-    setBusy(false);
+    setConfirmingId(null);
     toast.success("Volunteer confirmed");
     load();
     loadApps();
