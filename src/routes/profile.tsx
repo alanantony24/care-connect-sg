@@ -17,6 +17,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { BADGE_DEFS, type BadgeType } from "@/lib/badges";
+import { SENIORS } from "@/lib/seniors";
 
 export const Route = createFileRoute("/profile")({
   beforeLoad: async () => {
@@ -42,10 +43,6 @@ interface Review {
   reviewer: { name: string } | null;
 }
 
-const SENIORS = [
-  { name: "Eleanor R.", desc: "Daily assistance & companionship" },
-  { name: "Robert M.", desc: "Weekly check-ins & mobility" },
-];
 
 function ProfilePage() {
   const { profile, signOut } = useSession();
@@ -144,10 +141,17 @@ function ProfilePage() {
           <>
             <h3 className="mt-7 mb-3 text-base font-bold">Care Recipients</h3>
             <div className="space-y-2.5">
+        {/* Caregiver: Care recipients */}
+        {!isVolunteer && (
+          <>
+            <h3 className="mt-7 mb-3 text-base font-bold">Care Recipients</h3>
+            <div className="space-y-2.5">
               {SENIORS.map((s) => (
-                <div
-                  key={s.name}
-                  className="flex items-center gap-3 rounded-2xl bg-card border p-3 shadow-card"
+                <Link
+                  key={s.id}
+                  to="/seniors/$id"
+                  params={{ id: s.id }}
+                  className="flex items-center gap-3 rounded-2xl bg-card border p-3 shadow-card active:scale-[0.99] transition-transform"
                 >
                   <span className="size-12 rounded-full bg-primary-soft text-primary grid place-items-center font-semibold">
                     {s.name.charAt(0)}
@@ -157,8 +161,11 @@ function ProfilePage() {
                     <p className="text-xs text-muted-foreground truncate">{s.desc}</p>
                   </div>
                   <ChevronRight className="size-4 text-muted-foreground shrink-0" />
-                </div>
+                </Link>
               ))}
+            </div>
+          </>
+        )}
             </div>
           </>
         )}
