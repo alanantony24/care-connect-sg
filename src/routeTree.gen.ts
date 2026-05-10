@@ -17,6 +17,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as FeedRouteImport } from './routes/feed'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SeniorsIdRouteImport } from './routes/seniors.$id'
 import { Route as RequestsNewRouteImport } from './routes/requests.new'
 import { Route as RequestsIdRouteImport } from './routes/requests.$id'
 import { Route as MessagesPeerIdRouteImport } from './routes/messages_.$peerId'
@@ -64,6 +65,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SeniorsIdRoute = SeniorsIdRouteImport.update({
+  id: '/seniors/$id',
+  path: '/seniors/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RequestsNewRoute = RequestsNewRouteImport.update({
   id: '/requests/new',
   path: '/requests/new',
@@ -107,6 +113,7 @@ export interface FileRoutesByFullPath {
   '/messages/$peerId': typeof MessagesPeerIdRoute
   '/requests/$id': typeof RequestsIdRoute
   '/requests/new': typeof RequestsNewRoute
+  '/seniors/$id': typeof SeniorsIdRoute
   '/requests/$id/end': typeof RequestsIdEndRoute
   '/requests/$id/review': typeof RequestsIdReviewRoute
   '/requests/$id/start': typeof RequestsIdStartRoute
@@ -123,6 +130,7 @@ export interface FileRoutesByTo {
   '/messages/$peerId': typeof MessagesPeerIdRoute
   '/requests/$id': typeof RequestsIdRoute
   '/requests/new': typeof RequestsNewRoute
+  '/seniors/$id': typeof SeniorsIdRoute
   '/requests/$id/end': typeof RequestsIdEndRoute
   '/requests/$id/review': typeof RequestsIdReviewRoute
   '/requests/$id/start': typeof RequestsIdStartRoute
@@ -140,6 +148,7 @@ export interface FileRoutesById {
   '/messages_/$peerId': typeof MessagesPeerIdRoute
   '/requests/$id': typeof RequestsIdRoute
   '/requests/new': typeof RequestsNewRoute
+  '/seniors/$id': typeof SeniorsIdRoute
   '/requests/$id_/end': typeof RequestsIdEndRoute
   '/requests/$id_/review': typeof RequestsIdReviewRoute
   '/requests/$id_/start': typeof RequestsIdStartRoute
@@ -158,6 +167,7 @@ export interface FileRouteTypes {
     | '/messages/$peerId'
     | '/requests/$id'
     | '/requests/new'
+    | '/seniors/$id'
     | '/requests/$id/end'
     | '/requests/$id/review'
     | '/requests/$id/start'
@@ -174,6 +184,7 @@ export interface FileRouteTypes {
     | '/messages/$peerId'
     | '/requests/$id'
     | '/requests/new'
+    | '/seniors/$id'
     | '/requests/$id/end'
     | '/requests/$id/review'
     | '/requests/$id/start'
@@ -190,6 +201,7 @@ export interface FileRouteTypes {
     | '/messages_/$peerId'
     | '/requests/$id'
     | '/requests/new'
+    | '/seniors/$id'
     | '/requests/$id_/end'
     | '/requests/$id_/review'
     | '/requests/$id_/start'
@@ -207,6 +219,7 @@ export interface RootRouteChildren {
   MessagesPeerIdRoute: typeof MessagesPeerIdRoute
   RequestsIdRoute: typeof RequestsIdRoute
   RequestsNewRoute: typeof RequestsNewRoute
+  SeniorsIdRoute: typeof SeniorsIdRoute
   RequestsIdEndRoute: typeof RequestsIdEndRoute
   RequestsIdReviewRoute: typeof RequestsIdReviewRoute
   RequestsIdStartRoute: typeof RequestsIdStartRoute
@@ -270,6 +283,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/seniors/$id': {
+      id: '/seniors/$id'
+      path: '/seniors/$id'
+      fullPath: '/seniors/$id'
+      preLoaderRoute: typeof SeniorsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/requests/new': {
       id: '/requests/new'
       path: '/requests/new'
@@ -327,6 +347,7 @@ const rootRouteChildren: RootRouteChildren = {
   MessagesPeerIdRoute: MessagesPeerIdRoute,
   RequestsIdRoute: RequestsIdRoute,
   RequestsNewRoute: RequestsNewRoute,
+  SeniorsIdRoute: SeniorsIdRoute,
   RequestsIdEndRoute: RequestsIdEndRoute,
   RequestsIdReviewRoute: RequestsIdReviewRoute,
   RequestsIdStartRoute: RequestsIdStartRoute,
@@ -334,3 +355,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
