@@ -50,6 +50,7 @@ interface RequestRow {
   end_pin: string | null;
   started_at: string | null;
   payment_amount: number | null;
+  priority: string | null;
   requester: { name: string; avatar_url: string | null } | null;
   claimer: { name: string; avatar_url: string | null } | null;
 }
