@@ -264,6 +264,8 @@ function ProfilePage() {
           />
         </div>
 
+        {isVolunteer && <VolunteerInfoSection userId={profile.id} />}
+
         {/* Caregiver: Care recipients */}
         {!isVolunteer && (
           <>
@@ -488,5 +490,66 @@ function Stat({
         </p>
       </div>
     </div>
+  );
+}
+
+function VolunteerInfoSection({ userId }: { userId: string }) {
+  const [info, setInfo] = useState<{
+    age: number | null;
+    languages: string[] | null;
+    experience: string | null;
+    preferred_area: string | null;
+    motivation: string | null;
+    emergency_contact: string | null;
+    notes: string | null;
+    cert_status: string;
+  } | null>(null);
+
+  useEffect(() => {
+    supabase
+      .from("profiles")
+      .select(
+        "age, languages, experience, preferred_area, motivation, emergency_contact, notes, cert_status",
+      )
+      .eq("id", userId)
+      .maybeSingle()
+      .then(({ data }) => setInfo(data as any));
+  }, [userId]);
+
+  if (!info) return null;
+
+  const rows: Array<{ label: string; value: string | null }> = [
+    { label: "Age", value: info.age != null ? `${info.age}` : null },
+    { label: "Languages", value: info.languages?.length ? info.languages.join(", ") : null },
+    { label: "Preferred area", value: info.preferred_area },
+    { label: "Experience", value: info.experience },
+    { label: "Motivation", value: info.motivation },
+    { label: "Emergency contact", value: info.emergency_contact },
+    { label: "Notes", value: info.notes },
+    {
+      label: "Certifications",
+      value:
+        info.cert_status === "verified"
+          ? "Verified ✓"
+          : info.cert_status === "pending"
+            ? "Pending review (3–5 working days)"
+            : "Not uploaded",
+    },
+  ].filter((r) => r.value);
+
+  if (!rows.length) return null;
+
+  return (
+    <>
+      <h3 className="mt-7 mb-3 text-base font-bold">My Info</h3>
+      <div className="rounded-2xl bg-card border shadow-card divide-y">
+        {rows.map((r) => (
+          <div key={r.label} className="p-4">
+            <p className="text-xs text-muted-foreground">{r.label}</p>
+            <p className="font-semibold mt-0.5 break-words">{r.value}</p>
+          </div>
+        ))}
+      </div>
+    </>
   );
 }
