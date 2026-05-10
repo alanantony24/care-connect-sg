@@ -15,6 +15,7 @@ import {
   ChevronRight,
   CheckCircle2,
   Camera,
+  LifeBuoy,
 } from "lucide-react";
 import { BADGE_DEFS, type BadgeType } from "@/lib/badges";
 import { SENIORS } from "@/lib/seniors";
@@ -319,6 +320,22 @@ function ProfilePage() {
             </div>
           </>
         )}
+
+        <button
+          type="button"
+          className="mt-7 w-full rounded-2xl bg-card border p-4 shadow-card flex items-center gap-3 text-left active:scale-[0.99] transition-transform"
+        >
+          <span className="size-11 rounded-full bg-primary-soft text-primary grid place-items-center shrink-0">
+            <LifeBuoy className="size-5" />
+          </span>
+          <div className="flex-1 min-w-0">
+            <p className="font-semibold">Contact support</p>
+            <p className="text-sm text-muted-foreground">
+              Get help with tasks, payouts, or your account.
+            </p>
+          </div>
+          <ChevronRight className="size-4 text-muted-foreground shrink-0" />
+        </button>
 
         {/* Logout */}
         <button
