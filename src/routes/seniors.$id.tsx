@@ -151,3 +151,12 @@ function Row({ icon, label, text }: { icon: React.ReactNode; label: string; text
     </div>
   );
 }
+
+function Tile({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-2xl bg-card border shadow-card p-3 text-center">
+      <p className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</p>
+      <p className="mt-1 font-bold text-primary">{value}</p>
+    </div>
+  );
+}
