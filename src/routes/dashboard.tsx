@@ -197,13 +197,11 @@ function InProgressCard({ r }: { r: RequestRow }) {
           )}
         </div>
       </div>
-      <Link
-        to="/requests/$id"
-        params={{ id: r.id }}
+      <div
         className="mt-4 w-full rounded-full bg-primary text-primary-foreground py-3 font-semibold shadow-elevated flex items-center justify-center gap-2"
       >
         View Task <ChevronRight className="size-5" />
-      </Link>
+      </div>
     </Link>
   );
 }
