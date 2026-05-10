@@ -84,7 +84,7 @@ function StartPin() {
         >
           <ArrowLeft className="size-5" />
         </Link>
-        <p className="text-primary font-bold text-lg">CareKampung</p>
+        <p className="text-primary font-bold text-lg">Komunity</p>
         <div className="size-10" />
       </header>
 

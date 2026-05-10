@@ -182,7 +182,7 @@ function TaskDetail() {
           <Link to={back} className="size-10 grid place-items-center rounded-full bg-card border">
             <ArrowLeft className="size-5" />
           </Link>
-          <p className="text-primary font-bold tracking-tight">CareKampung</p>
+          <p className="text-primary font-bold tracking-tight">Komunity</p>
           <div className="size-10" />
         </div>
 
@@ -190,12 +190,26 @@ function TaskDetail() {
           {(() => {
             const pr = (r.priority ?? "normal") as "low" | "normal" | "high";
             const meta = {
-              low: { label: "Low priority", chip: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300", dot: "bg-emerald-500" },
-              normal: { label: "Normal priority", chip: "bg-amber-500/15 text-amber-700 dark:text-amber-300", dot: "bg-amber-500" },
-              high: { label: "High priority", chip: "bg-red-500/15 text-red-600 dark:text-red-300", dot: "bg-red-500" },
+              low: {
+                label: "Low priority",
+                chip: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300",
+                dot: "bg-emerald-500",
+              },
+              normal: {
+                label: "Normal priority",
+                chip: "bg-amber-500/15 text-amber-700 dark:text-amber-300",
+                dot: "bg-amber-500",
+              },
+              high: {
+                label: "High priority",
+                chip: "bg-red-500/15 text-red-600 dark:text-red-300",
+                dot: "bg-red-500",
+              },
             }[pr];
             return (
-              <span className={`inline-flex items-center gap-1.5 rounded-full text-xs font-semibold px-3 py-1.5 ${meta.chip}`}>
+              <span
+                className={`inline-flex items-center gap-1.5 rounded-full text-xs font-semibold px-3 py-1.5 ${meta.chip}`}
+              >
                 <span className={`size-2 rounded-full ${meta.dot}`} />
                 {meta.label}
               </span>
@@ -504,8 +518,9 @@ function TaskDetail() {
 
           {r.status === "completed" && (
             <>
-              <div className="rounded-2xl bg-success/15 text-success-foreground border border-success/30 p-4 text-center font-semibold">
-                ✅ Task completed — thank you!
+              <div className="rounded-2xl bg-success/15 text-success border border-success/40 p-4 text-center font-semibold flex items-center justify-center gap-2">
+                <CheckCircle2 className="size-5" />
+                <span>Task completed — thank you!</span>
               </div>
               <button
                 onClick={() => nav({ to: "/requests/$id/review", params: { id } })}

@@ -64,7 +64,9 @@ function EndPin() {
 
     await refresh();
     setGrossAmount(Number(req.payment_amount ?? 0));
-    setRequesterName((req as { requester?: { name?: string | null } }).requester?.name ?? "the caregiver");
+    setRequesterName(
+      (req as { requester?: { name?: string | null } }).requester?.name ?? "the caregiver",
+    );
     setBusy(false);
 
     if (profile.role === "volunteer") {
@@ -93,7 +95,7 @@ function EndPin() {
         >
           <ArrowLeft className="size-5" />
         </Link>
-        <p className="text-primary font-bold text-lg">CareKampung</p>
+        <p className="text-primary font-bold text-lg">Komunity</p>
         <div className="size-10" />
       </header>
 
