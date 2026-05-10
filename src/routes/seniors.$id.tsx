@@ -138,20 +138,6 @@ function SeniorDetail() {
   );
 }
 
-function Row({ icon, label, text }: { icon: React.ReactNode; label: string; text: string }) {
-  return (
-    <div className="flex items-center gap-4 p-4">
-      <span className="size-10 grid place-items-center rounded-xl bg-primary-soft text-primary">
-        {icon}
-      </span>
-      <div className="min-w-0">
-        <p className="text-xs text-muted-foreground">{label}</p>
-        <p className="font-semibold truncate">{text}</p>
-      </div>
-    </div>
-  );
-}
-
 function Tile({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-2xl bg-card border shadow-card p-3 text-center">
