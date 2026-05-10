@@ -4,7 +4,7 @@ import { AppShell, PageHeader } from "@/components/AppShell";
 import { MessagesFab } from "@/components/MessagesFab";
 import { useSession } from "@/lib/session";
 import { supabase } from "@/integrations/supabase/client";
-import { Bell, Loader2, MapPin, Plus, PlayCircle, Calendar, ChevronRight } from "lucide-react";
+import { Bell, Loader2, MapPin, Plus, Calendar, ChevronRight } from "lucide-react";
 import { taskMeta } from "@/lib/tasks";
 import { formatDateFriendly, formatTimeFriendly, getGreeting } from "@/lib/format";
 import { toast } from "sonner";
