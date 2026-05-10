@@ -93,22 +93,22 @@ function ReviewPage() {
 
       <div className="container-app space-y-5">
         {!isVolunteer && (
-          <div className="rounded-2xl bg-card shadow-card p-4 flex items-center gap-3">
-            <div className="size-12 rounded-full bg-primary-soft text-primary grid place-items-center font-semibold">
+          <div className="w-full max-w-full overflow-hidden rounded-2xl bg-card shadow-card p-4 flex items-center gap-3">
+            <div className="size-12 shrink-0 rounded-full bg-primary-soft text-primary grid place-items-center font-semibold">
               {reviewee?.name.charAt(0) ?? "?"}
             </div>
             <div className="flex-1 min-w-0">
               <p className="font-bold truncate">{reviewee?.name ?? "Volunteer"}</p>
               <p className="text-xs text-muted-foreground truncate">Assisted with {r.title}</p>
             </div>
-            <span className="rounded-full bg-primary-soft text-primary text-xs font-semibold px-2.5 py-1 flex items-center gap-1">
+            <span className="shrink-0 rounded-full bg-primary-soft text-primary text-xs font-semibold px-2.5 py-1 flex items-center gap-1">
               <BadgeCheck className="size-3.5" /> Verified
             </span>
           </div>
         )}
 
         {isVolunteer && (
-          <div className="rounded-2xl bg-card shadow-card p-6 text-center">
+          <div className="w-full max-w-full overflow-hidden rounded-2xl bg-card shadow-card p-6 text-center">
             <div className="size-16 rounded-full bg-primary-soft text-primary grid place-items-center mx-auto">
               <CheckCircle2 className="size-8" />
             </div>
@@ -119,7 +119,7 @@ function ReviewPage() {
           </div>
         )}
 
-        <div className="rounded-2xl bg-card shadow-card p-5">
+        <div className="w-full max-w-full overflow-hidden rounded-2xl bg-card shadow-card p-5">
           <p className="text-center font-semibold">Rate your experience</p>
           <div className="mt-3 flex justify-center gap-2">
             {[1, 2, 3, 4, 5].map((n) => (
@@ -135,7 +135,7 @@ function ReviewPage() {
           </div>
         </div>
 
-        <div className="rounded-2xl bg-card shadow-card p-5">
+        <div className="w-full max-w-full overflow-hidden rounded-2xl bg-card shadow-card p-5">
           <p className="text-sm font-semibold mb-2">
             {isVolunteer ? "Caregiver Review (Optional)" : "Comments (Optional)"}
           </p>
@@ -153,9 +153,9 @@ function ReviewPage() {
         </div>
 
         {!isVolunteer && (
-          <div>
+          <div className="w-full max-w-full">
             <p className="font-semibold mb-3">Award a Badge</p>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid w-full grid-cols-3 gap-3">
               {BADGES.map((b) => {
                 const active = badge === b.key;
                 const Icon = b.Icon;
@@ -164,7 +164,7 @@ function ReviewPage() {
                     type="button"
                     key={b.key}
                     onClick={() => setBadge(active ? null : b.key)}
-                    className={`rounded-2xl border p-5 flex flex-col items-center gap-2 transition-colors ${
+                    className={`w-full min-w-0 rounded-2xl border px-3 py-5 flex flex-col items-center gap-2 transition-colors ${
                       active ? "border-primary bg-primary-soft" : "bg-card border-border"
                     }`}
                   >
@@ -175,7 +175,7 @@ function ReviewPage() {
                     >
                       <Icon className="size-6" />
                     </span>
-                    <span className="text-sm font-semibold">{b.label}</span>
+                    <span className="max-w-full truncate text-sm font-semibold">{b.label}</span>
                   </button>
                 );
               })}
