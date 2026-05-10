@@ -221,8 +221,8 @@ function GroupedByCategory({ rows }: { rows: RequestRow[] }) {
           return (
             <section
               key={g.type}
-              ref={(el) => {
-                sectionRefs.current[g.type] = el;
+              ref={(el: HTMLElement | null) => {
+                sectionRefs.current[g.type] = el as HTMLDivElement | null;
               }}
               className="scroll-mt-20"
             >
