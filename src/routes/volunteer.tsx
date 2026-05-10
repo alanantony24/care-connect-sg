@@ -4,7 +4,7 @@ import { AppShell, PageHeader } from "@/components/AppShell";
 import { MessagesFab } from "@/components/MessagesFab";
 import { useSession } from "@/lib/session";
 import { supabase } from "@/integrations/supabase/client";
-import { Bell, Loader2 } from "lucide-react";
+import { Bell, Loader2, Award, Heart } from "lucide-react";
 import { RequestCard, CardSkeleton, EmptyHint } from "./dashboard";
 import { getGreeting } from "@/lib/format";
 
