@@ -428,3 +428,14 @@ function Stat({
     </div>
   );
 }
+
+function InfoRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="p-4">
+      <p className="text-[11px] uppercase tracking-wider font-semibold text-muted-foreground">
+        {label}
+      </p>
+      <p className="mt-0.5 text-sm leading-6 whitespace-pre-wrap">{value}</p>
+    </div>
+  );
+}
