@@ -154,7 +154,7 @@ function ReviewPage() {
 
         {!isVolunteer && (
           <div className="w-full max-w-full">
-            <p className="font-semibold mb-3">Award a Badge</p>
+            <p className="font-semibold mb-3">Award a Badge (Optional)</p>
             <div className="grid w-full grid-cols-3 gap-3">
               {BADGES.map((b) => {
                 const active = badge === b.key;
