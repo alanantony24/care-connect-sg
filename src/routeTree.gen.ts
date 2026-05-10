@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as VolunteerRouteImport } from './routes/volunteer'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as MessagesRouteImport } from './routes/messages'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as FeedRouteImport } from './routes/feed'
@@ -38,6 +39,11 @@ const SignupRoute = SignupRouteImport.update({
 const ProfileRoute = ProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NotificationsRoute = NotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MessagesRoute = MessagesRouteImport.update({
@@ -107,6 +113,7 @@ export interface FileRoutesByFullPath {
   '/feed': typeof FeedRoute
   '/login': typeof LoginRoute
   '/messages': typeof MessagesRoute
+  '/notifications': typeof NotificationsRoute
   '/profile': typeof ProfileRoute
   '/signup': typeof SignupRoute
   '/volunteer': typeof VolunteerRoute
@@ -124,6 +131,7 @@ export interface FileRoutesByTo {
   '/feed': typeof FeedRoute
   '/login': typeof LoginRoute
   '/messages': typeof MessagesRoute
+  '/notifications': typeof NotificationsRoute
   '/profile': typeof ProfileRoute
   '/signup': typeof SignupRoute
   '/volunteer': typeof VolunteerRoute
@@ -142,6 +150,7 @@ export interface FileRoutesById {
   '/feed': typeof FeedRoute
   '/login': typeof LoginRoute
   '/messages': typeof MessagesRoute
+  '/notifications': typeof NotificationsRoute
   '/profile': typeof ProfileRoute
   '/signup': typeof SignupRoute
   '/volunteer': typeof VolunteerRoute
@@ -161,6 +170,7 @@ export interface FileRouteTypes {
     | '/feed'
     | '/login'
     | '/messages'
+    | '/notifications'
     | '/profile'
     | '/signup'
     | '/volunteer'
@@ -178,6 +188,7 @@ export interface FileRouteTypes {
     | '/feed'
     | '/login'
     | '/messages'
+    | '/notifications'
     | '/profile'
     | '/signup'
     | '/volunteer'
@@ -195,6 +206,7 @@ export interface FileRouteTypes {
     | '/feed'
     | '/login'
     | '/messages'
+    | '/notifications'
     | '/profile'
     | '/signup'
     | '/volunteer'
@@ -213,6 +225,7 @@ export interface RootRouteChildren {
   FeedRoute: typeof FeedRoute
   LoginRoute: typeof LoginRoute
   MessagesRoute: typeof MessagesRoute
+  NotificationsRoute: typeof NotificationsRoute
   ProfileRoute: typeof ProfileRoute
   SignupRoute: typeof SignupRoute
   VolunteerRoute: typeof VolunteerRoute
@@ -246,6 +259,13 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/notifications': {
+      id: '/notifications'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof NotificationsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/messages': {
@@ -341,6 +361,7 @@ const rootRouteChildren: RootRouteChildren = {
   FeedRoute: FeedRoute,
   LoginRoute: LoginRoute,
   MessagesRoute: MessagesRoute,
+  NotificationsRoute: NotificationsRoute,
   ProfileRoute: ProfileRoute,
   SignupRoute: SignupRoute,
   VolunteerRoute: VolunteerRoute,

@@ -4,7 +4,8 @@ import { AppShell, PageHeader } from "@/components/AppShell";
 import { MessagesFab } from "@/components/MessagesFab";
 import { useSession } from "@/lib/session";
 import { supabase } from "@/integrations/supabase/client";
-import { Bell, Loader2, Award, Heart, ChevronRight, MessageCircle } from "lucide-react";
+import { Bell, Loader2, Award, Heart, ChevronRight } from "lucide-react";
+import mascot from "@/assets/mascot.png";
 import { RequestCard, CardSkeleton } from "./dashboard";
 import { TASK_TYPES } from "@/lib/tasks";
 import { getGreeting } from "@/lib/format";
@@ -75,18 +76,13 @@ function VolunteerHome() {
       <PageHeader
         title={`${getGreeting()}, ${profile.name.split(" ")[0]}`}
         right={
-          <div className="flex items-center gap-2">
-            <Link
-              to="/messages"
-              aria-label="Messages"
-              className="size-10 grid place-items-center rounded-full bg-card border"
-            >
-              <MessageCircle className="size-5" />
-            </Link>
-            <span className="size-10 grid place-items-center rounded-full bg-card border">
-              <Bell className="size-5" />
-            </span>
-          </div>
+          <Link
+            to="/notifications"
+            aria-label="Notifications"
+            className="size-10 grid place-items-center rounded-full bg-card border"
+          >
+            <Bell className="size-5" />
+          </Link>
         }
       />
 
@@ -97,7 +93,7 @@ function VolunteerHome() {
         </div>
 
         {nextBadge && (
-          <div className="mt-4 rounded-2xl p-4 shadow-elevated text-white relative overflow-hidden bg-gradient-to-br from-amber-400 via-amber-500 to-yellow-600">
+          <div className="mt-4 rounded-2xl p-4 shadow-elevated text-white relative overflow-hidden bg-gradient-to-br from-[#D4AF37] via-[#C9962B] to-[#8B6914]">
             <div className="absolute -right-6 -top-6 size-24 rounded-full bg-white/15 blur-xl" />
             <div className="relative flex items-start gap-3">
               <span className="size-12 grid place-items-center rounded-2xl bg-white/20 backdrop-blur shrink-0">
@@ -170,6 +166,20 @@ function VolunteerHome() {
               </Link>
             </div>
           )}
+        </div>
+
+        <div className="mt-10 flex flex-col items-center text-center opacity-90">
+          <img
+            src={mascot}
+            alt=""
+            width={160}
+            height={160}
+            loading="lazy"
+            className="size-32 object-contain drop-shadow-sm"
+          />
+          <p className="mt-2 text-xs text-muted-foreground max-w-[14rem]">
+            Thank you for being part of Komunity.
+          </p>
         </div>
       </div>
       <MessagesFab />
