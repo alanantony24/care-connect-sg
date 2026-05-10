@@ -104,7 +104,7 @@ export function CareNotesAssistant({ existingNotes, onUseNotes }: Props) {
       </button>
 
       {error && (
-        <p className="text-xs text-red-600 bg-red-50 rounded-lg p-2">{error}</p>
+        <p className="text-xs text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-950/40 border border-red-200/60 dark:border-red-900/40 rounded-lg p-2">{error}</p>
       )}
 
       {output && (
