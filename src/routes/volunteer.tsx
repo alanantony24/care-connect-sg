@@ -1,11 +1,12 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { createFileRoute, Link, redirect } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { AppShell, PageHeader } from "@/components/AppShell";
 import { MessagesFab } from "@/components/MessagesFab";
 import { useSession } from "@/lib/session";
 import { supabase } from "@/integrations/supabase/client";
-import { Bell, Loader2, Award, Heart } from "lucide-react";
-import { RequestCard, CardSkeleton, EmptyHint } from "./dashboard";
+import { Bell, Loader2, Award, Heart, ChevronRight } from "lucide-react";
+import { RequestCard, CardSkeleton } from "./dashboard";
+import { TASK_TYPES } from "@/lib/tasks";
 import { getGreeting } from "@/lib/format";
 
 export const Route = createFileRoute("/volunteer")({
@@ -34,7 +35,6 @@ interface RequestRow {
 function VolunteerHome() {
   const { profile } = useSession();
   const [rows, setRows] = useState<RequestRow[] | null>(null);
-  const [filter, setFilter] = useState<"all" | "nearby" | "urgent">("all");
 
   useEffect(() => {
     if (!profile) return;
@@ -46,17 +46,7 @@ function VolunteerHome() {
       .then(({ data }) => setRows((data ?? []) as RequestRow[]));
   }, [profile]);
 
-  const visible = useMemo(() => {
-    const list = (rows ?? []).filter((r) => r.status === "open");
-    if (filter === "urgent") {
-      return list.filter((r) => {
-        const ageHours = (Date.now() - new Date(r.created_at).getTime()) / 36e5;
-        return ageHours < 12;
-      });
-    }
-    return list;
-  }, [rows, filter]);
-
+  const openList = (rows ?? []).filter((r) => r.status === "open");
   const myActive = (rows ?? []).find((r) => r.claimed_by === profile?.id && r.status === "claimed");
 
   if (!profile) {
@@ -83,8 +73,7 @@ function VolunteerHome() {
   return (
     <AppShell>
       <PageHeader
-        title={`${getGreeting()},`}
-        subtitle={profile.name.split(" ")[0]}
+        title={`${getGreeting()}, ${profile.name.split(" ")[0]}`}
         right={
           <span className="size-10 grid place-items-center rounded-full bg-card border">
             <Bell className="size-5" />
@@ -139,35 +128,37 @@ function VolunteerHome() {
           </h2>
         </div>
 
-        <div className="mt-3 flex gap-2">
-          {(["all", "nearby", "urgent"] as const).map((f) => (
-            <button
-              key={f}
-              onClick={() => setFilter(f)}
-              className={`rounded-full px-4 py-1.5 text-sm font-medium border capitalize ${
-                filter === f
-                  ? "bg-primary text-primary-foreground border-primary"
-                  : "bg-card text-muted-foreground"
-              }`}
-            >
-              {f}
-            </button>
-          ))}
-        </div>
-
-        <div className="mt-4">
+        <div className="mt-3">
           {rows === null ? (
             <CardSkeleton />
-          ) : visible.length === 0 ? (
-            <EmptyHint
-              title="No open tasks right now"
-              hint="Check back soon — new tasks appear all day."
-            />
           ) : (
-            <div className="space-y-3">
-              {visible.map((r) => (
-                <RequestCard key={r.id} r={r} />
-              ))}
+            <div className="rounded-2xl bg-card border p-4 shadow-card">
+              <div className="grid grid-cols-3 gap-2.5">
+                {TASK_TYPES.map((t) => {
+                  const Icon = t.icon;
+                  const count = openList.filter((r) => r.task_type === t.value).length;
+                  return (
+                    <div
+                      key={t.value}
+                      className="flex flex-col items-center gap-1.5 rounded-xl bg-primary-soft/60 p-3"
+                    >
+                      <span className="size-9 grid place-items-center rounded-lg bg-card text-primary">
+                        <Icon className="size-4" />
+                      </span>
+                      <p className="text-lg font-bold leading-none text-primary">{count}</p>
+                      <p className="text-[11px] font-medium text-muted-foreground leading-tight text-center">
+                        {t.label}
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
+              <Link
+                to="/feed"
+                className="mt-4 w-full rounded-full bg-primary text-primary-foreground py-2.5 font-semibold text-sm flex items-center justify-center gap-1.5 shadow-card active:scale-[0.99] transition-transform"
+              >
+                View all tasks <ChevronRight className="size-4" />
+              </Link>
             </div>
           )}
         </div>
