@@ -188,14 +188,7 @@ function NewRequest() {
             />
           </Field>
           <Field label="Time">
-            <input
-              required
-              type="time"
-              step={300}
-              value={time}
-              onChange={(e) => setTime(e.target.value)}
-              className="kinput"
-            />
+            <TimeDial value={time} onChange={setTime} />
           </Field>
         </div>
 
