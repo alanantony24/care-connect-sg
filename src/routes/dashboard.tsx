@@ -4,7 +4,8 @@ import { AppShell, PageHeader } from "@/components/AppShell";
 import { MessagesFab } from "@/components/MessagesFab";
 import { useSession } from "@/lib/session";
 import { supabase } from "@/integrations/supabase/client";
-import { Bell, Loader2, MapPin, Plus, Calendar, ChevronRight, MessageCircle } from "lucide-react";
+import { Bell, Loader2, MapPin, Plus, Calendar, ChevronRight } from "lucide-react";
+import mascot from "@/assets/mascot.png";
 import { taskMeta } from "@/lib/tasks";
 import { formatDateFriendly, formatTimeFriendly, getGreeting } from "@/lib/format";
 import { toast } from "sonner";
@@ -91,18 +92,13 @@ function Dashboard() {
       <PageHeader
         title={`${getGreeting()}, ${profile.name.split(" ")[0]}`}
         right={
-          <div className="flex items-center gap-2">
-            <Link
-              to="/messages"
-              aria-label="Messages"
-              className="size-10 grid place-items-center rounded-full bg-card border"
-            >
-              <MessageCircle className="size-5" />
-            </Link>
-            <span className="size-10 grid place-items-center rounded-full bg-card border">
-              <Bell className="size-5" />
-            </span>
-          </div>
+          <Link
+            to="/notifications"
+            aria-label="Notifications"
+            className="size-10 grid place-items-center rounded-full bg-card border"
+          >
+            <Bell className="size-5" />
+          </Link>
         }
       />
 
@@ -125,7 +121,7 @@ function Dashboard() {
         {/* Post new request */}
         <Link
           to="/requests/new"
-          className="flex items-center gap-3 rounded-2xl p-4 shadow-elevated text-white relative overflow-hidden bg-gradient-to-br from-amber-400 via-amber-500 to-yellow-600"
+          className="flex items-center gap-3 rounded-2xl p-4 shadow-elevated text-white relative overflow-hidden bg-gradient-to-br from-[#D4AF37] via-[#C9962B] to-[#8B6914]"
         >
           <div className="absolute -right-6 -top-6 size-24 rounded-full bg-white/15 blur-xl" />
           <span className="relative size-11 grid place-items-center rounded-xl bg-white/20 backdrop-blur">
@@ -170,6 +166,20 @@ function Dashboard() {
             </div>
           )}
         </section>
+
+        <div className="mt-10 flex flex-col items-center text-center opacity-90">
+          <img
+            src={mascot}
+            alt=""
+            width={160}
+            height={160}
+            loading="lazy"
+            className="size-32 object-contain drop-shadow-sm"
+          />
+          <p className="mt-2 text-xs text-muted-foreground max-w-[14rem]">
+            Caregiving, together. Komunity is here to lend a hand.
+          </p>
+        </div>
       </div>
       <MessagesFab />
     </AppShell>
