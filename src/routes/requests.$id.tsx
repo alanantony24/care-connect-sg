@@ -70,6 +70,7 @@ function TaskDetail() {
   const [apps, setApps] = useState<Application[]>([]);
   const [myApp, setMyApp] = useState<Application | null>(null);
   const [busy, setBusy] = useState(false);
+  const [confirmingId, setConfirmingId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     const { data } = await supabase
