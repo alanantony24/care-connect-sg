@@ -378,3 +378,43 @@ function Stat({
     </div>
   );
 }
+
+function VolunteerInfoSection({ profile: p }: { profile: any }) {
+  const items: Array<{ label: string; text: string; block?: boolean }> = [];
+  if (p.age) items.push({ label: "Age", text: String(p.age) });
+  if (p.languages?.length) items.push({ label: "Languages", text: p.languages.join(", ") });
+  if (p.preferred_area) items.push({ label: "Preferred area", text: p.preferred_area });
+  if (p.cert_status && p.cert_status !== "none") {
+    const txt =
+      p.cert_status === "verified"
+        ? "Verified ✓"
+        : p.cert_status === "pending"
+          ? "Pending review (3–5 working days)"
+          : p.cert_status;
+    items.push({ label: "Certifications", text: txt });
+  }
+  if (p.experience) items.push({ label: "Experience", text: p.experience, block: true });
+  if (p.motivation) items.push({ label: "Motivation", text: p.motivation, block: true });
+  if (p.emergency_contact) items.push({ label: "Emergency contact", text: p.emergency_contact });
+  if (p.notes) items.push({ label: "Notes", text: p.notes, block: true });
+
+  if (items.length === 0) return null;
+
+  return (
+    <>
+      <h3 className="mt-7 mb-3 text-base font-bold">My info</h3>
+      <div className="rounded-2xl bg-card border shadow-card divide-y">
+        {items.map((it) => (
+          <div key={it.label} className={it.block ? "p-4" : "flex items-center gap-4 p-4"}>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs text-muted-foreground">{it.label}</p>
+              <p className={`font-semibold ${it.block ? "text-sm leading-6 mt-1 whitespace-pre-wrap font-normal" : "break-words"}`}>
+                {it.text}
+              </p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </>
+  );
+}
