@@ -109,6 +109,23 @@ function NewRequest() {
       </p>
 
       <form onSubmit={onSubmit} className="mt-6 space-y-4">
+        {SENIORS.length > 1 && (
+          <Field label="Care recipient">
+            <select
+              required
+              value={recipientId}
+              onChange={(e) => setRecipientId(e.target.value)}
+              className="kinput"
+            >
+              {SENIORS.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.name} · {s.relation}
+                </option>
+              ))}
+            </select>
+          </Field>
+        )}
+
         <Field label="Task title">
           <input
             required
@@ -147,6 +164,7 @@ function NewRequest() {
             <input
               required
               type="date"
+              min={today}
               value={date}
               onChange={(e) => setDate(e.target.value)}
               className="kinput"
@@ -156,6 +174,7 @@ function NewRequest() {
             <input
               required
               type="time"
+              step={300}
               value={time}
               onChange={(e) => setTime(e.target.value)}
               className="kinput"
@@ -163,46 +182,35 @@ function NewRequest() {
           </Field>
         </div>
 
-        <Field label="Location / meeting point">
-          <input
-            required
+        <div>
+          <span className="block text-sm font-medium mb-1.5">Location / meeting point</span>
+          <LocationPicker
             value={location}
-            onChange={(e) => setLocation(e.target.value)}
-            className="kinput"
-            placeholder="e.g. Block 102, Ang Mo Kio Ave 3"
+            onChange={setLocation}
+            placeholder="Search address, MRT, or postal code"
           />
-        </Field>
+        </div>
 
         <div>
           <span className="block text-sm font-medium mb-2">Priority</span>
           <div className="grid grid-cols-3 gap-2">
-            {([
-              { v: "low", label: "Low", hint: "Flexible" },
-              { v: "normal", label: "Normal", hint: "Standard" },
-              { v: "high", label: "High", hint: "Urgent" },
-            ] as const).map((p) => {
-              const active = priority === p.v;
-              const tone =
-                p.v === "high"
-                  ? active
-                    ? "border-destructive bg-destructive/10 text-destructive"
-                    : "bg-card"
-                  : p.v === "low"
-                    ? active
-                      ? "border-primary bg-primary-soft text-primary"
-                      : "bg-card"
-                    : active
-                      ? "border-primary bg-primary-soft"
-                      : "bg-card";
+            {(["low", "normal", "high"] as const).map((v) => {
+              const active = priority === v;
+              const meta = PRIORITY_META[v];
+              const hint = v === "low" ? "Flexible" : v === "normal" ? "Standard" : "Urgent";
               return (
                 <button
                   type="button"
-                  key={p.v}
-                  onClick={() => setPriority(p.v)}
-                  className={`rounded-2xl border p-3 text-left transition-colors ${tone}`}
+                  key={v}
+                  onClick={() => setPriority(v)}
+                  className={`rounded-2xl border p-3 text-left transition-colors ${
+                    active ? meta.ring : "bg-card border-border"
+                  }`}
                 >
-                  <p className="text-sm font-semibold">{p.label}</p>
-                  <p className="text-xs opacity-80">{p.hint}</p>
+                  <p className="text-sm font-semibold flex items-center gap-1.5">
+                    <span className={`size-2 rounded-full ${meta.dot}`} /> {meta.label}
+                  </p>
+                  <p className="text-xs opacity-80 mt-0.5">{hint}</p>
                 </button>
               );
             })}
