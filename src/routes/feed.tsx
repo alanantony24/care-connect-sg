@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { AppShell, PageHeader } from "@/components/AppShell";
 import { useSession } from "@/lib/session";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Plus } from "lucide-react";
+import { Loader2, Plus, MessageCircle } from "lucide-react";
 import { RequestCard, CardSkeleton, EmptyHint } from "./dashboard";
 import { TASK_TYPES, type TaskType } from "@/lib/tasks";
 
