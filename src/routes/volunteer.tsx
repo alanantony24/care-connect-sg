@@ -1,6 +1,7 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { AppShell, PageHeader } from "@/components/AppShell";
+import { MessagesFab } from "@/components/MessagesFab";
 import { useSession } from "@/lib/session";
 import { supabase } from "@/integrations/supabase/client";
 import { Bell, Loader2 } from "lucide-react";
@@ -158,6 +159,7 @@ function VolunteerHome() {
           )}
         </div>
       </div>
+      <MessagesFab />
     </AppShell>
   );
 }

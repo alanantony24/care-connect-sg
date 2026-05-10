@@ -12,12 +12,14 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as VolunteerRouteImport } from './routes/volunteer'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as MessagesRouteImport } from './routes/messages'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as FeedRouteImport } from './routes/feed'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as RequestsNewRouteImport } from './routes/requests.new'
 import { Route as RequestsIdRouteImport } from './routes/requests.$id'
+import { Route as MessagesPeerIdRouteImport } from './routes/messages_.$peerId'
 import { Route as RequestsIdStartRouteImport } from './routes/requests.$id_.start'
 import { Route as RequestsIdReviewRouteImport } from './routes/requests.$id_.review'
 import { Route as RequestsIdEndRouteImport } from './routes/requests.$id_.end'
@@ -35,6 +37,11 @@ const SignupRoute = SignupRouteImport.update({
 const ProfileRoute = ProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MessagesRoute = MessagesRouteImport.update({
+  id: '/messages',
+  path: '/messages',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -67,6 +74,11 @@ const RequestsIdRoute = RequestsIdRouteImport.update({
   path: '/requests/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MessagesPeerIdRoute = MessagesPeerIdRouteImport.update({
+  id: '/messages_/$peerId',
+  path: '/messages/$peerId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RequestsIdStartRoute = RequestsIdStartRouteImport.update({
   id: '/requests/$id_/start',
   path: '/requests/$id/start',
@@ -88,9 +100,11 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof DashboardRoute
   '/feed': typeof FeedRoute
   '/login': typeof LoginRoute
+  '/messages': typeof MessagesRoute
   '/profile': typeof ProfileRoute
   '/signup': typeof SignupRoute
   '/volunteer': typeof VolunteerRoute
+  '/messages/$peerId': typeof MessagesPeerIdRoute
   '/requests/$id': typeof RequestsIdRoute
   '/requests/new': typeof RequestsNewRoute
   '/requests/$id/end': typeof RequestsIdEndRoute
@@ -102,9 +116,11 @@ export interface FileRoutesByTo {
   '/dashboard': typeof DashboardRoute
   '/feed': typeof FeedRoute
   '/login': typeof LoginRoute
+  '/messages': typeof MessagesRoute
   '/profile': typeof ProfileRoute
   '/signup': typeof SignupRoute
   '/volunteer': typeof VolunteerRoute
+  '/messages/$peerId': typeof MessagesPeerIdRoute
   '/requests/$id': typeof RequestsIdRoute
   '/requests/new': typeof RequestsNewRoute
   '/requests/$id/end': typeof RequestsIdEndRoute
@@ -117,9 +133,11 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRoute
   '/feed': typeof FeedRoute
   '/login': typeof LoginRoute
+  '/messages': typeof MessagesRoute
   '/profile': typeof ProfileRoute
   '/signup': typeof SignupRoute
   '/volunteer': typeof VolunteerRoute
+  '/messages_/$peerId': typeof MessagesPeerIdRoute
   '/requests/$id': typeof RequestsIdRoute
   '/requests/new': typeof RequestsNewRoute
   '/requests/$id_/end': typeof RequestsIdEndRoute
@@ -133,9 +151,11 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/feed'
     | '/login'
+    | '/messages'
     | '/profile'
     | '/signup'
     | '/volunteer'
+    | '/messages/$peerId'
     | '/requests/$id'
     | '/requests/new'
     | '/requests/$id/end'
@@ -147,9 +167,11 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/feed'
     | '/login'
+    | '/messages'
     | '/profile'
     | '/signup'
     | '/volunteer'
+    | '/messages/$peerId'
     | '/requests/$id'
     | '/requests/new'
     | '/requests/$id/end'
@@ -161,9 +183,11 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/feed'
     | '/login'
+    | '/messages'
     | '/profile'
     | '/signup'
     | '/volunteer'
+    | '/messages_/$peerId'
     | '/requests/$id'
     | '/requests/new'
     | '/requests/$id_/end'
@@ -176,9 +200,11 @@ export interface RootRouteChildren {
   DashboardRoute: typeof DashboardRoute
   FeedRoute: typeof FeedRoute
   LoginRoute: typeof LoginRoute
+  MessagesRoute: typeof MessagesRoute
   ProfileRoute: typeof ProfileRoute
   SignupRoute: typeof SignupRoute
   VolunteerRoute: typeof VolunteerRoute
+  MessagesPeerIdRoute: typeof MessagesPeerIdRoute
   RequestsIdRoute: typeof RequestsIdRoute
   RequestsNewRoute: typeof RequestsNewRoute
   RequestsIdEndRoute: typeof RequestsIdEndRoute
@@ -207,6 +233,13 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/messages': {
+      id: '/messages'
+      path: '/messages'
+      fullPath: '/messages'
+      preLoaderRoute: typeof MessagesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -251,6 +284,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RequestsIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/messages_/$peerId': {
+      id: '/messages_/$peerId'
+      path: '/messages/$peerId'
+      fullPath: '/messages/$peerId'
+      preLoaderRoute: typeof MessagesPeerIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/requests/$id_/start': {
       id: '/requests/$id_/start'
       path: '/requests/$id/start'
@@ -280,9 +320,11 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardRoute: DashboardRoute,
   FeedRoute: FeedRoute,
   LoginRoute: LoginRoute,
+  MessagesRoute: MessagesRoute,
   ProfileRoute: ProfileRoute,
   SignupRoute: SignupRoute,
   VolunteerRoute: VolunteerRoute,
+  MessagesPeerIdRoute: MessagesPeerIdRoute,
   RequestsIdRoute: RequestsIdRoute,
   RequestsNewRoute: RequestsNewRoute,
   RequestsIdEndRoute: RequestsIdEndRoute,
@@ -292,13 +334,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

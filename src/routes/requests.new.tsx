@@ -147,8 +147,8 @@ function NewRequest() {
         </Field>
 
         <Field label="Payment offered (SGD)">
-          <div className="relative">
-            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-semibold">
+          <div className="kinput flex items-center gap-2 p-0 overflow-hidden">
+            <span className="pl-4 pr-1 text-muted-foreground font-semibold select-none">
               S$
             </span>
             <input
@@ -158,7 +158,7 @@ function NewRequest() {
               step={1}
               value={payment}
               onChange={(e) => setPayment(e.target.value)}
-              className="kinput pl-10"
+              className="flex-1 bg-transparent outline-none py-3 pr-4 text-base"
               placeholder="10"
             />
           </div>
