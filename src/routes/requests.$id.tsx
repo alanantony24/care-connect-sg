@@ -70,6 +70,7 @@ function TaskDetail() {
   const [apps, setApps] = useState<Application[]>([]);
   const [myApp, setMyApp] = useState<Application | null>(null);
   const [busy, setBusy] = useState(false);
+  const [confirmingId, setConfirmingId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     const { data } = await supabase
@@ -147,13 +148,14 @@ function TaskDetail() {
   };
 
   const confirmVolunteer = async (volunteerId: string) => {
-    setBusy(true);
+    setConfirmingId(volunteerId);
     const { error: e1 } = await supabase
       .from("requests")
       .update({ status: "claimed", claimed_by: volunteerId })
-      .eq("id", id);
+      .eq("id", id)
+      .eq("status", "open");
     if (e1) {
-      setBusy(false);
+      setConfirmingId(null);
       return toast.error(e1.message);
     }
     await supabase
@@ -167,7 +169,7 @@ function TaskDetail() {
       .eq("request_id", id)
       .neq("volunteer_id", volunteerId)
       .eq("status", "pending");
-    setBusy(false);
+    setConfirmingId(null);
     toast.success("Volunteer confirmed");
     load();
     loadApps();
@@ -432,11 +434,16 @@ function TaskDetail() {
                       <MessageCircle className="size-4" />
                     </Link>
                     <button
-                      disabled={busy}
+                      disabled={confirmingId !== null}
                       onClick={() => confirmVolunteer(a.volunteer_id)}
                       className="rounded-full bg-primary text-primary-foreground text-xs font-semibold px-3 py-2 shadow-elevated disabled:opacity-50 flex items-center gap-1"
                     >
-                      <UserCheck className="size-3.5" /> Accept
+                      {confirmingId === a.volunteer_id ? (
+                        <Loader2 className="size-3.5 animate-spin" />
+                      ) : (
+                        <UserCheck className="size-3.5" />
+                      )}
+                      Accept
                     </button>
                   </li>
                 ))}
