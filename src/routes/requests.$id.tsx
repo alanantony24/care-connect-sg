@@ -302,8 +302,9 @@ function TaskDetail() {
           </span>
         </div>
 
-        {/* PINs visible to caregiver (the requester) only */}
-        {isMine && r.status !== "completed" && (
+        {/* PINs visible to caregiver (the requester) only — only after a volunteer is confirmed.
+            Start PIN appears once confirmed; End PIN appears once the volunteer starts the task. */}
+        {isMine && r.status === "claimed" && (
           <div className="mt-4 rounded-2xl border border-primary/30 bg-primary-soft/40 p-4">
             <div className="flex items-center gap-2">
               <KeyRound className="size-4 text-primary" />
@@ -312,11 +313,22 @@ function TaskDetail() {
               </p>
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              Share these with the volunteer at the start and end of the visit.
+              {isStarted
+                ? "Share the End PIN once the visit is finished."
+                : "Share the Start PIN with the volunteer when they arrive."}
             </p>
             <div className="mt-3 grid grid-cols-2 gap-3">
               <PinBlock label="Start PIN" value={r.start_pin} />
-              <PinBlock label="End PIN" value={r.end_pin} />
+              {isStarted ? (
+                <PinBlock label="End PIN" value={r.end_pin} />
+              ) : (
+                <div className="rounded-xl bg-card/60 border border-dashed p-3 text-center">
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                    End PIN
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-2">Available after task starts</p>
+                </div>
+              )}
             </div>
           </div>
         )}
