@@ -576,3 +576,64 @@ function TaskCardDetail({
     </div>
   );
 }
+
+function FormattedNotes({ notes }: { notes: string | null }) {
+  if (!notes || !notes.trim()) {
+    return (
+      <p className="mt-2 text-base leading-7 text-muted-foreground">
+        No additional notes provided.
+      </p>
+    );
+  }
+
+  type Block = { label?: string; bullets: string[] };
+  const blocks: Block[] = [];
+  let current: Block | null = null;
+  const labelRe = /^([A-Za-z][A-Za-z' ]{1,20}):\s*(.*)$/;
+
+  for (const rawLine of notes.split(/\r?\n/)) {
+    const line = rawLine.trim();
+    if (!line) continue;
+
+    if (line.startsWith("- ") || line.startsWith("• ")) {
+      if (!current) current = { bullets: [] };
+      current.bullets.push(line.replace(/^[-•]\s+/, ""));
+      continue;
+    }
+
+    const m = line.match(labelRe);
+    if (m) {
+      if (current) blocks.push(current);
+      current = { label: m[1], bullets: [] };
+      if (m[2]) current.bullets.push(m[2]);
+      continue;
+    }
+
+    if (!current) current = { bullets: [] };
+    current.bullets.push(line);
+  }
+  if (current) blocks.push(current);
+
+  return (
+    <div className="mt-3 space-y-3 text-[15px] leading-6 text-foreground/90">
+      {blocks.map((b, i) => (
+        <div key={i}>
+          {b.label && (
+            <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground mb-1">
+              {b.label}
+            </p>
+          )}
+          {b.bullets.length === 1 && !b.label ? (
+            <p>{b.bullets[0]}</p>
+          ) : (
+            <ul className="list-disc pl-5 space-y-1 marker:text-primary">
+              {b.bullets.map((bu, j) => (
+                <li key={j}>{bu}</li>
+              ))}
+            </ul>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
