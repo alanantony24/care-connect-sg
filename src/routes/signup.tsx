@@ -11,7 +11,7 @@ export const Route = createFileRoute("/signup")({
   component: SignupPage,
 });
 
-const LANGUAGE_OPTIONS = ["English", "Mandarin", "Malay", "Tamil", "Hokkien", "Cantonese", "Teochew"];
+const LANGUAGE_SUGGESTIONS = ["English", "Mandarin", "Malay", "Tamil", "Hokkien", "Cantonese", "Teochew"];
 
 function SignupPage() {
   const nav = useNavigate();
@@ -220,28 +220,7 @@ function SignupPage() {
               />
             </Field>
 
-            <div>
-              <span className="block text-sm font-medium mb-1.5">Languages you speak</span>
-              <div className="flex flex-wrap gap-2">
-                {LANGUAGE_OPTIONS.map((l) => {
-                  const on = languages.includes(l);
-                  return (
-                    <button
-                      type="button"
-                      key={l}
-                      onClick={() => toggleLang(l)}
-                      className={`rounded-full px-3.5 py-1.5 text-sm border transition-colors ${
-                        on
-                          ? "bg-primary text-primary-foreground border-primary"
-                          : "bg-card border-border"
-                      }`}
-                    >
-                      {l}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
+            <LanguageInput languages={languages} setLanguages={setLanguages} />
 
             <div>
               <span className="block text-sm font-medium mb-1.5">
