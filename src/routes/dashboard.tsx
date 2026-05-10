@@ -6,7 +6,7 @@ import { useSession } from "@/lib/session";
 import { supabase } from "@/integrations/supabase/client";
 import { Bell, Loader2, MapPin, Plus, Calendar, ChevronRight } from "lucide-react";
 import mascot from "@/assets/mascot.png";
-import { taskBadgeStyle, taskMeta } from "@/lib/tasks";
+import { PRIORITY_META, taskBadgeStyle, taskMeta, type Priority } from "@/lib/tasks";
 import { formatDateFriendly, formatTimeFriendly, getGreeting } from "@/lib/format";
 import { toast } from "sonner";
 
@@ -31,6 +31,7 @@ interface RequestRow {
   started_at?: string | null;
   claimed_by: string | null;
   payment_amount?: number | null;
+  priority?: string | null;
   claimer?: { name: string } | null;
 }
 
@@ -249,11 +250,25 @@ export function RequestCard({ r }: { r: RequestRow & { requester?: { name: strin
               {displayStatus}
             </span>
           </div>
-          <span
-            className={`mt-1 inline-flex rounded-full border px-2 py-0.5 text-[11px] font-semibold capitalize backdrop-blur-md ${style.compact}`}
-          >
-            {meta.label}
-          </span>
+          <div className="mt-1 flex items-center gap-1.5 flex-wrap">
+            <span
+              className={`inline-flex rounded-full border px-2 py-0.5 text-[11px] font-semibold capitalize backdrop-blur-md ${style.compact}`}
+            >
+              {meta.label}
+            </span>
+            {(() => {
+              const p = (r.priority ?? "normal") as Priority;
+              const pm = PRIORITY_META[p] ?? PRIORITY_META.normal;
+              return (
+                <span
+                  className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-semibold ${pm.chip}`}
+                >
+                  <span className={`size-1.5 rounded-full ${pm.dot}`} />
+                  {pm.label}
+                </span>
+              );
+            })()}
+          </div>
           <div className="mt-3 space-y-1.5 text-xs text-muted-foreground">
             <div className="flex items-center gap-1.5">
               <MapPin className="size-3.5 shrink-0" />

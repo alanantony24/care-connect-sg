@@ -138,19 +138,22 @@ function Feed() {
       />
       <div className="container-app">
         <div className="flex gap-2 overflow-x-auto no-scrollbar -mx-1 px-1 pb-1">
-          {tabs.map((t) => (
-            <button
-              key={t}
-              onClick={() => setTab(t)}
-              className={`rounded-full px-5 py-2 text-sm font-semibold capitalize whitespace-nowrap border transition-colors ${
-                tab === t
-                  ? "bg-primary text-primary-foreground border-primary shadow-card"
-                  : "bg-card text-muted-foreground border-border hover:text-foreground"
-              }`}
-            >
-              {t}
-            </button>
-          ))}
+          {tabs.map((t) => {
+            const label = t === "pending" ? "My Tasks" : t;
+            return (
+              <button
+                key={t}
+                onClick={() => setTab(t)}
+                className={`rounded-full px-5 py-2 text-sm font-semibold capitalize whitespace-nowrap border transition-colors ${
+                  tab === t
+                    ? "bg-primary text-primary-foreground border-primary shadow-card"
+                    : "bg-card text-muted-foreground border-border hover:text-foreground"
+                }`}
+              >
+                {label}
+              </button>
+            );
+          })}
         </div>
 
         <div className="mt-4">

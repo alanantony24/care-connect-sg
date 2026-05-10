@@ -62,6 +62,16 @@ function ProfilePage() {
   const [badges, setBadges] = useState<{ badge_type: string }[] | null>(null);
   const [reviews, setReviews] = useState<Review[] | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [info, setInfo] = useState<{
+    age: number | null;
+    languages: string[] | null;
+    experience: string | null;
+    preferred_area: string | null;
+    motivation: string | null;
+    emergency_contact: string | null;
+    notes: string | null;
+    cert_status: string | null;
+  } | null>(null);
 
   useEffect(() => {
     if (!profile) return;
@@ -71,6 +81,14 @@ function ProfilePage() {
         .select("badge_type")
         .eq("user_id", profile.id)
         .then(({ data }) => setBadges(data ?? []));
+      supabase
+        .from("profiles")
+        .select(
+          "age,languages,experience,preferred_area,motivation,emergency_contact,notes,cert_status",
+        )
+        .eq("id", profile.id)
+        .maybeSingle()
+        .then(({ data }) => setInfo(data as typeof info));
     }
     supabase
       .from("reviews")
@@ -80,6 +98,7 @@ function ProfilePage() {
       .limit(5)
       .then(({ data }) => setReviews((data ?? []) as unknown as Review[]));
   }, [profile]);
+
 
   if (!profile) {
     return (
@@ -222,6 +241,40 @@ function ProfilePage() {
                   <ChevronRight className="size-4 text-muted-foreground shrink-0" />
                 </Link>
               ))}
+            </div>
+          </>
+        )}
+
+        {/* Volunteer: My Info */}
+        {isVolunteer && info && (
+          <>
+            <h3 className="mt-7 mb-3 text-base font-bold">My Info</h3>
+            <div className="rounded-2xl bg-card border shadow-card divide-y">
+              {info.age != null && <InfoRow label="Age" value={`${info.age}`} />}
+              {info.languages && info.languages.length > 0 && (
+                <InfoRow label="Languages" value={info.languages.join(", ")} />
+              )}
+              {info.preferred_area && (
+                <InfoRow label="Preferred area" value={info.preferred_area} />
+              )}
+              {info.experience && <InfoRow label="Experience" value={info.experience} />}
+              {info.motivation && <InfoRow label="Motivation" value={info.motivation} />}
+              {info.emergency_contact && (
+                <InfoRow label="Emergency contact" value={info.emergency_contact} />
+              )}
+              {info.notes && <InfoRow label="Notes" value={info.notes} />}
+              {info.cert_status && info.cert_status !== "none" && (
+                <InfoRow
+                  label="Certifications"
+                  value={
+                    info.cert_status === "verified"
+                      ? "Verified"
+                      : info.cert_status === "pending"
+                        ? "Pending review (3–5 working days)"
+                        : info.cert_status
+                  }
+                />
+              )}
             </div>
           </>
         )}
@@ -372,6 +425,17 @@ function Stat({
           {suffix && <span className="text-xs text-muted-foreground ml-1">{suffix}</span>}
         </p>
       </div>
+    </div>
+  );
+}
+
+function InfoRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="p-4">
+      <p className="text-[11px] uppercase tracking-wider font-semibold text-muted-foreground">
+        {label}
+      </p>
+      <p className="mt-0.5 text-sm leading-6 whitespace-pre-wrap">{value}</p>
     </div>
   );
 }

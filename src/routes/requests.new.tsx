@@ -1,19 +1,23 @@
 import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { ArrowLeft, Info, Loader2, Send } from "lucide-react";
 import { useSession } from "@/lib/session";
 import { supabase } from "@/integrations/supabase/client";
 import { FeeReceipt } from "@/components/FeeReceipt";
 import {
   MAX_TASK_PAYMENT,
+  PRIORITY_META,
   TASK_TYPES,
   clampTaskPayment,
   paymentGuidance,
   platformFeeFor,
   taskBadgeStyle,
   volunteerPayoutFor,
+  type Priority,
   type TaskType,
 } from "@/lib/tasks";
+import { SENIORS } from "@/lib/seniors";
+import { LocationPicker, type PickedLocation } from "@/components/LocationPicker";
 import { toast } from "sonner";
 import { Style } from "./login";
 
@@ -31,18 +35,25 @@ function NewRequest() {
   const nav = useNavigate();
   const [title, setTitle] = useState("");
   const [taskType, setTaskType] = useState<TaskType>("grocery");
+  const [recipient, setRecipient] = useState<string>(SENIORS[0]?.id ?? "");
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
-  const [location, setLocation] = useState("");
+  const [location, setLocation] = useState<PickedLocation | null>(null);
   const [notes, setNotes] = useState("");
-  const [payment, setPayment] = useState("10");
-  const [priority, setPriority] = useState<"low" | "normal" | "high">("normal");
+  const [payment, setPayment] = useState("0");
+  const [priority, setPriority] = useState<Priority>("normal");
   const [busy, setBusy] = useState(false);
   const suggestedPayment = paymentGuidance(taskType);
   const paymentInputRef = useRef<HTMLInputElement>(null);
   const paymentValue = clampTaskPayment(Number(payment) || 0);
   const platformFee = platformFeeFor(paymentValue);
   const volunteerPayout = volunteerPayoutFor(paymentValue);
+  const today = useMemo(() => {
+    const d = new Date();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${d.getFullYear()}-${m}-${day}`;
+  }, []);
 
   const useSuggestedPayment = () => {
     const amount = String(suggestedPayment.amount);
@@ -56,15 +67,22 @@ function NewRequest() {
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!profile) return;
-    const finalPayment = clampTaskPayment(Number(payment) || 0);
+    if (!location) {
+      toast.error("Please pick a location on the map.");
+      return;
+    }
     setBusy(true);
+    const recip = SENIORS.find((s) => s.id === recipient);
+    const finalNotes = recip
+      ? `For ${recip.name}${notes ? `\n\n${notes}` : ""}`
+      : notes || null;
     const { error } = await supabase.from("requests").insert({
       title,
       task_type: taskType,
       date_needed: date,
       time_needed: time,
-      location,
-      notes: notes || null,
+      location: location.label,
+      notes: finalNotes,
       payment_amount: Number(payment) || 0,
       priority,
       requester_id: profile.id,
@@ -101,6 +119,21 @@ function NewRequest() {
       </p>
 
       <form onSubmit={onSubmit} className="mt-6 space-y-4">
+        <Field label="Care recipient">
+          <select
+            required
+            value={recipient}
+            onChange={(e) => setRecipient(e.target.value)}
+            className="kinput"
+          >
+            {SENIORS.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.name} ({s.relation})
+              </option>
+            ))}
+          </select>
+        </Field>
+
         <Field label="Task title">
           <input
             required
@@ -153,6 +186,7 @@ function NewRequest() {
             <input
               required
               type="date"
+              min={today}
               value={date}
               onChange={(e) => setDate(e.target.value)}
               className="kinput"
@@ -162,6 +196,7 @@ function NewRequest() {
             <input
               required
               type="time"
+              step={300}
               value={time}
               onChange={(e) => setTime(e.target.value)}
               className="kinput"
@@ -169,48 +204,35 @@ function NewRequest() {
           </Field>
         </div>
 
-        <Field label="Location / meeting point">
-          <input
-            required
+        <div>
+          <span className="block text-sm font-medium mb-1.5">Location / meeting point</span>
+          <LocationPicker
             value={location}
-            onChange={(e) => setLocation(e.target.value)}
-            className="kinput"
-            placeholder="e.g. Block 102, Ang Mo Kio Ave 3"
+            onChange={setLocation}
+            placeholder="Search address, MRT, postal code"
           />
-        </Field>
+        </div>
 
         <div>
           <span className="block text-sm font-medium mb-2">Priority</span>
           <div className="grid grid-cols-3 gap-2">
-            {(
-              [
-                { v: "low", label: "Low", hint: "Flexible" },
-                { v: "normal", label: "Normal", hint: "Standard" },
-                { v: "high", label: "High", hint: "Urgent" },
-              ] as const
-            ).map((p) => {
-              const active = priority === p.v;
-              const tone =
-                p.v === "high"
-                  ? active
-                    ? "border-destructive bg-destructive/10 text-destructive"
-                    : "bg-card"
-                  : p.v === "low"
-                    ? active
-                      ? "border-primary bg-primary-soft text-primary"
-                      : "bg-card"
-                    : active
-                      ? "border-primary bg-primary-soft"
-                      : "bg-card";
+            {(Object.keys(PRIORITY_META) as Priority[]).map((p) => {
+              const meta = PRIORITY_META[p];
+              const active = priority === p;
               return (
                 <button
                   type="button"
-                  key={p.v}
-                  onClick={() => setPriority(p.v)}
-                  className={`rounded-2xl border p-3 text-left transition-colors ${tone}`}
+                  key={p}
+                  onClick={() => setPriority(p)}
+                  className={`rounded-2xl border p-3 text-left transition-colors ${
+                    active ? meta.ring : "bg-card border-border"
+                  }`}
                 >
-                  <p className="text-sm font-semibold">{p.label}</p>
-                  <p className="text-xs opacity-80">{p.hint}</p>
+                  <div className="flex items-center gap-1.5">
+                    <span className={`size-2 rounded-full ${meta.dot}`} />
+                    <p className="text-sm font-semibold">{meta.label}</p>
+                  </div>
+                  <p className="text-xs opacity-80 mt-0.5">{meta.hint}</p>
                 </button>
               );
             })}
@@ -267,7 +289,7 @@ function NewRequest() {
               value={payment}
               onChange={(e) => setPayment(String(clampTaskPayment(Number(e.target.value) || 0)))}
               className="kinput kinput-money"
-              placeholder="10"
+              placeholder="0"
             />
           </div>
           <div className="mt-2 space-y-1 text-xs text-muted-foreground">

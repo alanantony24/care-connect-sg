@@ -11,7 +11,7 @@ export const Route = createFileRoute("/signup")({
   component: SignupPage,
 });
 
-const LANGUAGE_OPTIONS = ["English", "Mandarin", "Malay", "Tamil", "Hokkien", "Cantonese", "Teochew"];
+const LANGUAGE_SUGGESTIONS = ["English", "Mandarin", "Malay", "Tamil", "Hokkien", "Cantonese", "Teochew"];
 
 function SignupPage() {
   const nav = useNavigate();
@@ -33,10 +33,17 @@ function SignupPage() {
   const [notes, setNotes] = useState("");
   const [certFile, setCertFile] = useState<File | null>(null);
 
+  const [langInput, setLangInput] = useState("");
   const [busy, setBusy] = useState(false);
 
-  const toggleLang = (l: string) =>
-    setLanguages((prev) => (prev.includes(l) ? prev.filter((x) => x !== l) : [...prev, l]));
+  const addLang = (raw: string) => {
+    const l = raw.trim();
+    if (!l) return;
+    setLanguages((prev) => (prev.includes(l) ? prev : [...prev, l]));
+    setLangInput("");
+  };
+  const removeLang = (l: string) => setLanguages((prev) => prev.filter((x) => x !== l));
+
 
   const onContinue = (e: React.FormEvent) => {
     e.preventDefault();
@@ -222,24 +229,56 @@ function SignupPage() {
 
             <div>
               <span className="block text-sm font-medium mb-1.5">Languages you speak</span>
-              <div className="flex flex-wrap gap-2">
-                {LANGUAGE_OPTIONS.map((l) => {
-                  const on = languages.includes(l);
-                  return (
+              <div className="flex flex-wrap gap-2 mb-2">
+                {languages.map((l) => (
+                  <span
+                    key={l}
+                    className="inline-flex items-center gap-1.5 rounded-full bg-primary text-primary-foreground border-primary border px-3 py-1 text-sm"
+                  >
+                    {l}
                     <button
                       type="button"
-                      key={l}
-                      onClick={() => toggleLang(l)}
-                      className={`rounded-full px-3.5 py-1.5 text-sm border transition-colors ${
-                        on
-                          ? "bg-primary text-primary-foreground border-primary"
-                          : "bg-card border-border"
-                      }`}
+                      onClick={() => removeLang(l)}
+                      aria-label={`Remove ${l}`}
+                      className="opacity-80 hover:opacity-100"
                     >
-                      {l}
+                      ×
                     </button>
-                  );
-                })}
+                  </span>
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <input
+                  value={langInput}
+                  onChange={(e) => setLangInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === ",") {
+                      e.preventDefault();
+                      addLang(langInput);
+                    }
+                  }}
+                  className="kinput flex-1"
+                  placeholder="Type a language and press Enter"
+                />
+                <button
+                  type="button"
+                  onClick={() => addLang(langInput)}
+                  className="rounded-full bg-card border px-4 text-sm font-semibold"
+                >
+                  Add
+                </button>
+              </div>
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {LANGUAGE_SUGGESTIONS.filter((s) => !languages.includes(s)).map((s) => (
+                  <button
+                    type="button"
+                    key={s}
+                    onClick={() => addLang(s)}
+                    className="text-xs rounded-full border px-2.5 py-1 text-muted-foreground hover:text-foreground"
+                  >
+                    + {s}
+                  </button>
+                ))}
               </div>
             </div>
 

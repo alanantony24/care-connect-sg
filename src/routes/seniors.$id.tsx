@@ -1,5 +1,5 @@
 import { createFileRoute, Link, redirect, useNavigate, notFound } from "@tanstack/react-router";
-import { ArrowLeft, Phone, Calendar, MapPin, Heart, AlertTriangle, FileText } from "lucide-react";
+import { ArrowLeft, Heart, AlertTriangle, FileText, Accessibility, Pencil } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { getSenior } from "@/lib/seniors";
 
@@ -42,7 +42,12 @@ function SeniorDetail() {
           <ArrowLeft className="size-5" />
         </button>
         <p className="text-primary font-bold tracking-tight">Komunity</p>
-        <div className="size-10" />
+        <button
+          className="size-10 grid place-items-center rounded-full bg-card border"
+          aria-label="Edit"
+        >
+          <Pencil className="size-4" />
+        </button>
       </header>
 
       <div className="container-app">
@@ -53,28 +58,38 @@ function SeniorDetail() {
               {senior.name.charAt(0)}
             </div>
             <h1 className="mt-3 text-2xl font-bold">{senior.name}</h1>
-            <p className="text-sm text-muted-foreground">
-              {senior.age} years · {senior.relation}
-            </p>
+            <p className="text-sm text-muted-foreground">{senior.relation}</p>
           </div>
         </div>
 
-        <div className="mt-4 rounded-2xl bg-card border shadow-card divide-y">
-          <Row icon={<Calendar className="size-5" />} label="Preferred times" text={senior.preferredTimes} />
-          <Row icon={<MapPin className="size-5" />} label="Home address" text={senior.address} />
-          <Row
-            icon={<Phone className="size-5" />}
-            label="Emergency contact"
-            text={`${senior.emergencyContact.name} · ${senior.emergencyContact.phone}`}
-          />
+        <div className="mt-4 rounded-2xl bg-card border shadow-card p-4">
+          <div className="grid grid-cols-3 gap-3">
+            <Stat label="Sex" value={senior.sex} />
+            <Stat label="Age" value={`${senior.age}`} />
+            <Stat label="Blood type" value={senior.bloodType} />
+          </div>
         </div>
 
         <h3 className="mt-6 mb-3 text-base font-bold flex items-center gap-2">
-          <Heart className="size-4 text-primary" /> Health & accessibility
+          <Heart className="size-4 text-primary" /> Health information
         </h3>
         <div className="rounded-2xl bg-card border shadow-card p-4">
           <ul className="space-y-2 text-sm">
-            {senior.conditions.map((c) => (
+            {senior.health.map((c) => (
+              <li key={c} className="flex items-start gap-2">
+                <span className="size-1.5 rounded-full bg-primary mt-2 shrink-0" />
+                <span>{c}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <h3 className="mt-6 mb-3 text-base font-bold flex items-center gap-2">
+          <Accessibility className="size-4 text-primary" /> Accessibility
+        </h3>
+        <div className="rounded-2xl bg-card border shadow-card p-4">
+          <ul className="space-y-2 text-sm">
+            {senior.accessibility.map((c) => (
               <li key={c} className="flex items-start gap-2">
                 <span className="size-1.5 rounded-full bg-primary mt-2 shrink-0" />
                 <span>{c}</span>
@@ -93,7 +108,8 @@ function SeniorDetail() {
         <div className="mt-6 rounded-2xl bg-warning/10 border border-warning/40 p-4 flex gap-3">
           <AlertTriangle className="size-5 shrink-0 text-warning-foreground" />
           <p className="text-xs leading-5 text-warning-foreground">
-            For medical emergencies dial 995. Volunteers do not handle medications or medical procedures.
+            For medical emergencies dial 995. Volunteers do not handle medications or medical
+            procedures.
           </p>
         </div>
 
@@ -108,16 +124,13 @@ function SeniorDetail() {
   );
 }
 
-function Row({ icon, label, text }: { icon: React.ReactNode; label: string; text: string }) {
+function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-center gap-4 p-4">
-      <span className="size-10 grid place-items-center rounded-xl bg-primary-soft text-primary">
-        {icon}
-      </span>
-      <div className="min-w-0">
-        <p className="text-xs text-muted-foreground">{label}</p>
-        <p className="font-semibold truncate">{text}</p>
-      </div>
+    <div className="text-center">
+      <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
+        {label}
+      </p>
+      <p className="mt-1 font-bold">{value}</p>
     </div>
   );
 }

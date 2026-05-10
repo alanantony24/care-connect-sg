@@ -4,7 +4,7 @@ import { AppShell } from "@/components/AppShell";
 import { FeeReceipt } from "@/components/FeeReceipt";
 import { useSession } from "@/lib/session";
 import { supabase } from "@/integrations/supabase/client";
-import { platformFeeFor, taskBadgeStyle, taskMeta, volunteerPayoutFor } from "@/lib/tasks";
+import { platformFeeFor, PRIORITY_META, taskBadgeStyle, taskMeta, volunteerPayoutFor, type Priority } from "@/lib/tasks";
 import { toast } from "sonner";
 import {
   ArrowLeft,
@@ -21,6 +21,7 @@ import {
   HandHeart,
   UserCheck,
   Hourglass,
+  Eye,
 } from "lucide-react";
 import { formatDateFriendly, formatTimeFriendly } from "@/lib/format";
 
@@ -49,6 +50,7 @@ interface RequestRow {
   end_pin: string | null;
   started_at: string | null;
   payment_amount: number | null;
+  priority: string | null;
   requester: { name: string; avatar_url: string | null } | null;
   claimer: { name: string; avatar_url: string | null } | null;
 }
@@ -118,7 +120,6 @@ function TaskDetail() {
   const iClaimed = profile.id === r.claimed_by;
   const isStarted = r.status === "claimed" && Boolean(r.started_at);
   const ageHours = (Date.now() - new Date(r.created_at).getTime()) / 36e5;
-  const urgent = r.status === "open" && ageHours < 12;
   const pendingApps = apps.filter((a) => a.status === "pending");
   const grossAmount = Number(r.payment_amount ?? 0);
   const platformFee = platformFeeFor(grossAmount);
@@ -186,11 +187,18 @@ function TaskDetail() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          {urgent && (
-            <span className="rounded-full bg-destructive/10 text-destructive text-xs font-semibold px-3 py-1.5">
-              ● High priority
-            </span>
-          )}
+          {(() => {
+            const p = (r.priority ?? "normal") as Priority;
+            const meta = PRIORITY_META[p] ?? PRIORITY_META.normal;
+            return (
+              <span
+                className={`inline-flex items-center gap-1.5 rounded-full border text-xs font-semibold px-3 py-1.5 ${meta.chip}`}
+              >
+                <span className={`size-2 rounded-full ${meta.dot}`} />
+                {meta.label} priority
+              </span>
+            );
+          })()}
           <span
             className={`rounded-full border text-xs font-semibold px-3 py-1.5 capitalize backdrop-blur-md ${taskStyle.compact}`}
           >
@@ -293,8 +301,9 @@ function TaskDetail() {
           </span>
         </div>
 
-        {/* PINs visible to caregiver (the requester) only */}
-        {isMine && r.status !== "completed" && (
+        {/* PINs visible to caregiver (the requester) only — only after a volunteer is confirmed.
+            Start PIN appears once confirmed; End PIN appears once the volunteer starts the task. */}
+        {isMine && r.status === "claimed" && (
           <div className="mt-4 rounded-2xl border border-primary/30 bg-primary-soft/40 p-4">
             <div className="flex items-center gap-2">
               <KeyRound className="size-4 text-primary" />
@@ -303,11 +312,22 @@ function TaskDetail() {
               </p>
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              Share these with the volunteer at the start and end of the visit.
+              {isStarted
+                ? "Share the End PIN once the visit is finished."
+                : "Share the Start PIN with the volunteer when they arrive."}
             </p>
             <div className="mt-3 grid grid-cols-2 gap-3">
               <PinBlock label="Start PIN" value={r.start_pin} />
-              <PinBlock label="End PIN" value={r.end_pin} />
+              {isStarted ? (
+                <PinBlock label="End PIN" value={r.end_pin} />
+              ) : (
+                <div className="rounded-xl bg-card/60 border border-dashed p-3 text-center">
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                    End PIN
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-2">Available after task starts</p>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -392,6 +412,14 @@ function TaskDetail() {
                         {a.volunteer?.tasks_helped ?? 0} tasks completed
                       </p>
                     </div>
+                    <Link
+                      to="/profiles/$id"
+                      params={{ id: a.volunteer_id }}
+                      className="rounded-full border bg-card text-xs font-semibold px-3 py-2 flex items-center gap-1"
+                      aria-label="View volunteer profile"
+                    >
+                      <Eye className="size-3.5" /> View
+                    </Link>
                     <Link
                       to="/messages/$peerId"
                       params={{ peerId: a.volunteer_id }}

@@ -2,12 +2,12 @@ export interface Senior {
   id: string;
   name: string;
   age: number;
+  sex: "Male" | "Female";
+  bloodType: string;
   relation: string;
   desc: string;
-  conditions: string[];
-  preferredTimes: string;
-  address: string;
-  emergencyContact: { name: string; phone: string };
+  health: string[];
+  accessibility: string[];
   notes: string;
 }
 
@@ -16,27 +16,27 @@ export const SENIORS: Senior[] = [
     id: "eleanor-r",
     name: "Eleanor R.",
     age: 78,
+    sex: "Female",
+    bloodType: "O+",
     relation: "Mother",
     desc: "Daily assistance & companionship",
-    conditions: ["Mild arthritis", "Hearing aid"],
-    preferredTimes: "Mornings, 9–11 AM",
-    address: "Block 102, Ang Mo Kio Ave 3",
-    emergencyContact: { name: "Sarah Lim", phone: "+65 9123 4567" },
+    health: ["Mild arthritis", "Low blood pressure"],
+    accessibility: ["Wears a hearing aid", "Prefers slow walking pace"],
     notes:
-      "Loves morning walks around the void deck. Speaks Hokkien and English. Prefers a slow pace and a chat about her grandchildren.",
+      "Loves morning walks around the void deck. Speaks Hokkien and English. Please greet by name and chat about her grandchildren.",
   },
   {
     id: "robert-m",
     name: "Robert M.",
     age: 82,
+    sex: "Male",
+    bloodType: "A+",
     relation: "Father-in-law",
     desc: "Weekly check-ins & mobility",
-    conditions: ["Recovering from knee surgery", "Wears glasses"],
-    preferredTimes: "Afternoons, 2–4 PM",
-    address: "Block 215, Bishan Street 23",
-    emergencyContact: { name: "Daniel Tan", phone: "+65 9876 5432" },
+    health: ["Recovering from knee surgery"],
+    accessibility: ["Uses a walking stick", "Wears glasses"],
     notes:
-      "Uses a walking stick. Enjoys company at the kopitiam and reading the newspaper. Please greet by name to help orientation.",
+      "Enjoys company at the kopitiam and reading the newspaper. Please greet by name to help orientation.",
   },
 ];
 
