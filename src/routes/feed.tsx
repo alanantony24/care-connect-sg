@@ -148,7 +148,7 @@ function Feed() {
                   : "bg-card text-muted-foreground border-border hover:text-foreground"
               }`}
             >
-              {t === "pending" ? "My Tasks" : t}
+              {t === "pending" ? "My Tasks" : t === "all" ? "Open" : t}
             </button>
           ))}
         </div>
